@@ -113,11 +113,11 @@ reg   [7:0]     xgxs_txc;
 reg   [63:0]    next_xgxs_txd;
 reg   [7:0]     next_xgxs_txc;
 
-reg   [2:0]     curr_state;
-reg   [2:0]     next_state;
+reg   [2:0]     curr_state_enc;
+reg   [2:0]     next_state_enc;
 
-reg   [0:0]     curr_state_rd;
-reg   [0:0]     next_state_rd;
+reg   [0:0]     curr_state_pad;
+reg   [0:0]     next_state_pad;
 
 reg             start_on_lane0;
 reg             next_start_on_lane0;
@@ -173,8 +173,8 @@ parameter [2:0]
              SM_IFG       = 3'd6;
 
 parameter [0:0]
-             SM_RD_EQ   = 1'd0,
-             SM_RD_PAD  = 1'd1;
+             SM_PAD_EQ    = 1'd0,
+             SM_PAD_PAD   = 1'd1;
 
 
 //---
@@ -225,7 +225,7 @@ always @(posedge clk_xgmii_tx or negedge reset_xgmii_tx_n) begin
 
     if (reset_xgmii_tx_n == 1'b0) begin
 
-        curr_state <= SM_IDLE;
+        curr_state_enc <= SM_IDLE;
 
         start_on_lane0 <= 1'b1;
         ifg_deficit <= 3'b0;
@@ -250,7 +250,7 @@ always @(posedge clk_xgmii_tx or negedge reset_xgmii_tx_n) begin
     end
     else begin
 
-        curr_state <= next_state;
+        curr_state_enc <= next_state_enc;
 
         start_on_lane0 <= next_start_on_lane0;
         ifg_deficit <= next_ifg_deficit;
@@ -296,13 +296,13 @@ always @(posedge clk_xgmii_tx or negedge reset_xgmii_tx_n) begin
 
 end
 
-always @(/*AS*/crc32_tx or ctrl_tx_enable_ctx or curr_state or eop
+always @(/*AS*/crc32_tx or ctrl_tx_enable_ctx or curr_state_enc or eop
          or frame_available or ifg_4b_add or ifg_8b2_add or ifg_8b_add
          or ifg_deficit or start_on_lane0 or status_local_fault_ctx
          or txhfifo_ralmost_empty or txhfifo_rdata_d1
          or txhfifo_rempty or txhfifo_rstatus) begin
 
-    next_state = curr_state;
+    next_state_enc = curr_state_enc;
 
     next_start_on_lane0 = start_on_lane0;
     next_ifg_deficit = ifg_deficit;
@@ -319,7 +319,7 @@ always @(/*AS*/crc32_tx or ctrl_tx_enable_ctx or curr_state or eop
 
     next_frame_available = frame_available;
 
-    case (curr_state)
+    case (curr_state_enc)
 
         SM_IDLE:
           begin
@@ -335,7 +335,7 @@ always @(/*AS*/crc32_tx or ctrl_tx_enable_ctx or curr_state or eop
                   !status_local_fault_ctx && !status_local_fault_ctx) begin
 
                   txhfifo_ren = 1'b1;
-                  next_state = SM_PREAMBLE;
+                  next_state_enc = SM_PREAMBLE;
 
               end
               else begin
@@ -359,13 +359,13 @@ always @(/*AS*/crc32_tx or ctrl_tx_enable_ctx or curr_state or eop
 
                  txhfifo_ren = 1'b1;
 
-                 next_state = SM_TX;
+                 next_state_enc = SM_TX;
 
              end
              else begin
 
                  next_frame_available = 1'b0;
-                 next_state = SM_IDLE;
+                 next_state_enc = SM_IDLE;
 
              end
 
@@ -399,7 +399,7 @@ always @(/*AS*/crc32_tx or ctrl_tx_enable_ctx or curr_state or eop
                   
                   txhfifo_ren = 1'b0;
                   next_frame_available = !txhfifo_ralmost_empty;
-                  next_state = SM_EOP;
+                  next_state_enc = SM_EOP;
 
               end
               else if (txhfifo_rempty || txhfifo_rstatus[`TXSTATUS_SOP]) begin
@@ -407,7 +407,7 @@ always @(/*AS*/crc32_tx or ctrl_tx_enable_ctx or curr_state or eop
                   // Failure condition, we did not see EOP and there
                   // is no more data in fifo or SOP, force end of packet transmit.
 
-                  next_state = SM_TERM_FAIL;
+                  next_state_enc = SM_TERM_FAIL;
 
               end
 
@@ -600,24 +600,24 @@ always @(/*AS*/crc32_tx or ctrl_tx_enable_ctx or curr_state or eop
                       // Skip idle state if needed.
 
                       if (next_ifg_8b2_add) begin
-                          next_state = SM_IFG;
+                          next_state_enc = SM_IFG;
                       end
                       else if (next_ifg_8b_add) begin
-                          next_state = SM_IDLE;
+                          next_state_enc = SM_IDLE;
                       end
                       else begin
                           txhfifo_ren = 1'b1;
-                          next_state = SM_PREAMBLE;
+                          next_state_enc = SM_PREAMBLE;
                       end
 
                   end
                   else begin
-                      next_state = SM_IFG;
+                      next_state_enc = SM_IFG;
                   end
               end
 
               if (|eop[7:3]) begin
-                  next_state = SM_TERM;
+                  next_state_enc = SM_TERM;
               end
 
           end
@@ -658,13 +658,13 @@ always @(/*AS*/crc32_tx or ctrl_tx_enable_ctx or curr_state or eop
 
               if (frame_available && !ifg_8b_add) begin
                   txhfifo_ren = 1'b1;
-                  next_state = SM_PREAMBLE;
+                  next_state_enc = SM_PREAMBLE;
               end
               else if (frame_available) begin
-                  next_state = SM_IDLE;
+                  next_state_enc = SM_IDLE;
               end
               else begin
-                  next_state = SM_IFG;
+                  next_state_enc = SM_IFG;
               end
 
           end
@@ -674,20 +674,20 @@ always @(/*AS*/crc32_tx or ctrl_tx_enable_ctx or curr_state or eop
 
               next_xgxs_txd = {{7{`IDLE}}, `TERMINATE};
               next_xgxs_txc = 8'b11111111;
-              next_state = SM_IFG;
+              next_state_enc = SM_IFG;
 
           end
 
         SM_IFG:
           begin
 
-              next_state = SM_IDLE;
+              next_state_enc = SM_IDLE;
 
           end
 
         default:
           begin
-              next_state = SM_IDLE;
+              next_state_enc = SM_IDLE;
           end
 
     endcase
@@ -706,11 +706,11 @@ always @(/*AS*/crc32_d64 or txhfifo_wen or txhfifo_wstatus) begin
     
 end
 
-always @(/*AS*/byte_cnt or curr_state_rd or txdfifo_rdata
+always @(/*AS*/byte_cnt or curr_state_pad or txdfifo_rdata
          or txdfifo_rempty or txdfifo_ren_d1 or txdfifo_rstatus
          or txhfifo_walmost_full) begin
 
-    next_state_rd = curr_state_rd;
+    next_state_pad = curr_state_pad;
 
     next_txhfifo_wdata = txdfifo_rdata;
     next_txhfifo_wstatus = txdfifo_rstatus;
@@ -718,9 +718,9 @@ always @(/*AS*/byte_cnt or curr_state_rd or txdfifo_rdata
     txdfifo_ren = 1'b0;
     next_txhfifo_wen = 1'b0;
 
-    case (curr_state_rd)
+    case (curr_state_pad)
 
-      SM_RD_EQ: begin
+      SM_PAD_EQ: begin
 
 
           //---
@@ -750,7 +750,7 @@ always @(/*AS*/byte_cnt or curr_state_rd or txdfifo_rdata
 
                       next_txhfifo_wstatus = `TXSTATUS_NONE;
                       txdfifo_ren = 1'b0;
-                      next_state_rd = SM_RD_PAD;
+                      next_state_pad = SM_PAD_PAD;
 
                   end
                   else if (byte_cnt == 14'd56 &&
@@ -787,7 +787,7 @@ always @(/*AS*/byte_cnt or curr_state_rd or txdfifo_rdata
 
       end
 
-      SM_RD_PAD: begin
+      SM_PAD_PAD: begin
 
           //---
           // Pad packet to 64 bytes by writting zeros to holding fifo.
@@ -807,7 +807,7 @@ always @(/*AS*/byte_cnt or curr_state_rd or txdfifo_rdata
                   next_txhfifo_wstatus[`TXSTATUS_EOP] = 1'b1;
                   next_txhfifo_wstatus[2:0] = 3'd4;
 
-                  next_state_rd = SM_RD_EQ;
+                  next_state_pad = SM_PAD_EQ;
 
               end
 
@@ -817,7 +817,7 @@ always @(/*AS*/byte_cnt or curr_state_rd or txdfifo_rdata
 
       default:
         begin
-            next_state_rd = SM_RD_EQ;
+            next_state_pad = SM_PAD_EQ;
         end
 
     endcase
@@ -829,7 +829,7 @@ always @(posedge clk_xgmii_tx or negedge reset_xgmii_tx_n) begin
 
     if (reset_xgmii_tx_n == 1'b0) begin
 
-        curr_state_rd <= SM_RD_EQ;
+        curr_state_pad <= SM_PAD_EQ;
 
         txdfifo_ren_d1 <= 1'b0;
 
@@ -846,7 +846,7 @@ always @(posedge clk_xgmii_tx or negedge reset_xgmii_tx_n) begin
     end
     else begin
 
-        curr_state_rd <= next_state_rd;
+        curr_state_pad <= next_state_pad;
 
         txdfifo_ren_d1 <= txdfifo_ren;
 
