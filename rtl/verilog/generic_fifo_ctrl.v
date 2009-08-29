@@ -102,12 +102,14 @@ reg  [AWIDTH:0]   next_rd_ptr;
 // Combinatorial
 
 wire [AWIDTH:0]   wr_gray;
+reg  [AWIDTH:0]   wr_gray_reg;
 reg  [AWIDTH:0]   wr_gray_meta;
 reg  [AWIDTH:0]   wr_gray_sync;
 reg  [AWIDTH:0]   wck_rd_ptr;
 wire [AWIDTH:0]   wck_level;
 
 wire [AWIDTH:0]   rd_gray;
+reg  [AWIDTH:0]   rd_gray_reg;
 reg  [AWIDTH:0]   rd_gray_meta;
 reg  [AWIDTH:0]   rd_gray_sync;
 reg  [AWIDTH:0]   rck_wr_ptr;
@@ -202,11 +204,13 @@ generate
         always @(posedge rclk or negedge rrst_n)
         begin
             if (!rrst_n) begin
+                rd_gray_reg <= {(AWIDTH+1){1'b0}};
                 wr_gray_meta <= {(AWIDTH+1){1'b0}};
                 wr_gray_sync <= {(AWIDTH+1){1'b0}};
             end
             else begin
-                wr_gray_meta <= wr_gray;
+                rd_gray_reg <= rd_gray;
+                wr_gray_meta <= wr_gray_reg;
                 wr_gray_sync <= wr_gray_meta;
             end
         end
@@ -214,11 +218,13 @@ generate
         always @(posedge wclk or negedge wrst_n)
         begin
             if (!wrst_n) begin
+                wr_gray_reg <= {(AWIDTH+1){1'b0}};
                 rd_gray_meta <= {(AWIDTH+1){1'b0}};
                 rd_gray_sync <= {(AWIDTH+1){1'b0}};
             end
             else begin
-                rd_gray_meta <= rd_gray;
+                wr_gray_reg <= wr_gray;
+                rd_gray_meta <= rd_gray_reg;
                 rd_gray_sync <= rd_gray_meta;
             end
         end
@@ -251,7 +257,7 @@ generate
 
         // With early read, data will be present at output
         // before ren is asserted. Usufull if we want to add
-        // an output register and not add latency.   
+        // an output register and not add latency.
         assign mem_raddr = next_rd_ptr;
         assign mem_ren = 1'b1;
 
@@ -265,6 +271,3 @@ generate
 endgenerate
 
 endmodule
-
-
-
