@@ -40,16 +40,16 @@
 
 module rx_dequeue(/*AUTOARG*/
   // Outputs
-  rxdfifo_ren, pkt_rx_data, pkt_rx_val, pkt_rx_sop, pkt_rx_eop, 
-  pkt_rx_err, pkt_rx_mod, pkt_rx_avail, status_rxdfifo_udflow_tog, 
+  rxdfifo_ren, pkt_rx_data, pkt_rx_val, pkt_rx_sop, pkt_rx_eop,
+  pkt_rx_err, pkt_rx_mod, pkt_rx_avail, status_rxdfifo_udflow_tog,
   // Inputs
-  clk_156m25, reset_156m25_n, rxdfifo_rdata, rxdfifo_rstatus, 
+  clk_156m25, reset_156m25_n, rxdfifo_rdata, rxdfifo_rstatus,
   rxdfifo_rempty, rxdfifo_ralmost_empty, pkt_rx_ren
   );
 
 input         clk_156m25;
 input         reset_156m25_n;
-   
+
 input [63:0]  rxdfifo_rdata;
 input [7:0]   rxdfifo_rstatus;
 input         rxdfifo_rempty;
@@ -58,7 +58,7 @@ input         rxdfifo_ralmost_empty;
 input         pkt_rx_ren;
 
 output        rxdfifo_ren;
-   
+
 output [63:0] pkt_rx_data;
 output        pkt_rx_val;
 output        pkt_rx_sop;
@@ -84,8 +84,6 @@ reg                     status_rxdfifo_udflow_tog;
 reg           end_eop;
 
 /*AUTOWIRE*/
-// Beginning of automatic wires (for undeclared instantiated-module outputs)
-// End of automatics
 
 
 // End eop to force one cycle between packets
@@ -124,7 +122,7 @@ always @(posedge clk_156m25 or negedge reset_156m25_n) begin
         // packet. The fifo is designed to output data early. On last read,
         // data from next packet will appear at the output of fifo. Modulus
         // of packet length is in lower bits.
-        
+
         pkt_rx_eop <= rxdfifo_ren && rxdfifo_rstatus[`RXSTATUS_EOP];
         pkt_rx_mod <= {3{rxdfifo_ren & rxdfifo_rstatus[`RXSTATUS_EOP]}} & rxdfifo_rstatus[2:0];
 
@@ -133,7 +131,18 @@ always @(posedge clk_156m25 or negedge reset_156m25_n) begin
 
         if (rxdfifo_ren) begin
 
+            `ifdef BIGENDIAN
+	    pkt_rx_data <= {rxdfifo_rdata[7:0],
+                            rxdfifo_rdata[15:8],
+                            rxdfifo_rdata[23:16],
+                            rxdfifo_rdata[31:24],
+                            rxdfifo_rdata[39:32],
+                            rxdfifo_rdata[47:40],
+                            rxdfifo_rdata[55:48],
+                            rxdfifo_rdata[63:56]};
+            `else
 	    pkt_rx_data <= rxdfifo_rdata;
+            `endif
 
         end
 
@@ -173,7 +182,7 @@ always @(posedge clk_156m25 or negedge reset_156m25_n) begin
 
         //---
         // EOP indication at the end of the frame. Cleared otherwise.
-        
+
         if (rxdfifo_ren && rxdfifo_rstatus[`RXSTATUS_EOP]) begin
             end_eop <= 1'b1;
         end
@@ -185,7 +194,7 @@ always @(posedge clk_156m25 or negedge reset_156m25_n) begin
 
         //---
         // FIFO errors, used to generate interrupts
-        
+
         if (rxdfifo_rempty && pkt_rx_ren && !end_eop) begin
             status_rxdfifo_udflow_tog <= ~status_rxdfifo_udflow_tog;
         end
@@ -194,4 +203,3 @@ always @(posedge clk_156m25 or negedge reset_156m25_n) begin
 end
 
 endmodule
-

@@ -40,14 +40,14 @@
 
 module rx_enqueue(/*AUTOARG*/
   // Outputs
-  rxdfifo_wdata, rxdfifo_wstatus, rxdfifo_wen, rxhfifo_ren, 
-  rxhfifo_wdata, rxhfifo_wstatus, rxhfifo_wen, local_fault_msg_det, 
-  remote_fault_msg_det, status_crc_error_tog, 
-  status_fragment_error_tog, status_rxdfifo_ovflow_tog, 
-  status_pause_frame_rx_tog, 
+  rxdfifo_wdata, rxdfifo_wstatus, rxdfifo_wen, rxhfifo_ren,
+  rxhfifo_wdata, rxhfifo_wstatus, rxhfifo_wen, local_fault_msg_det,
+  remote_fault_msg_det, status_crc_error_tog,
+  status_fragment_error_tog, status_rxdfifo_ovflow_tog,
+  status_pause_frame_rx_tog,
   // Inputs
-  clk_xgmii_rx, reset_xgmii_rx_n, xgmii_rxd, xgmii_rxc, 
-  rxdfifo_wfull, rxhfifo_rdata, rxhfifo_rstatus, rxhfifo_rempty, 
+  clk_xgmii_rx, reset_xgmii_rx_n, xgmii_rxd, xgmii_rxc, rxdfifo_wfull,
+  rxhfifo_rdata, rxhfifo_rstatus, rxhfifo_rempty,
   rxhfifo_ralmost_empty
   );
 
@@ -108,8 +108,6 @@ reg                     status_rxdfifo_ovflow_tog;
 // End of automatics
 
 /*AUTOWIRE*/
-// Beginning of automatic wires (for undeclared instantiated-module outputs)
-// End of automatics
 
 
 reg [63:32]   xgmii_rxd_d1;

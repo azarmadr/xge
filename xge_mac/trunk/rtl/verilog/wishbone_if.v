@@ -40,12 +40,11 @@
 
 module wishbone_if(/*AUTOARG*/
   // Outputs
-  wb_dat_o, wb_ack_o, wb_int_o, ctrl_tx_enable, 
+  wb_dat_o, wb_ack_o, wb_int_o, ctrl_tx_enable,
   // Inputs
-  wb_clk_i, wb_rst_i, wb_adr_i, wb_dat_i, wb_we_i, wb_stb_i, 
-  wb_cyc_i, status_crc_error, status_fragment_error, 
-  status_txdfifo_ovflow, status_txdfifo_udflow, 
-  status_rxdfifo_ovflow, status_rxdfifo_udflow, 
+  wb_clk_i, wb_rst_i, wb_adr_i, wb_dat_i, wb_we_i, wb_stb_i, wb_cyc_i,
+  status_crc_error, status_fragment_error, status_txdfifo_ovflow,
+  status_txdfifo_udflow, status_rxdfifo_ovflow, status_rxdfifo_udflow,
   status_pause_frame_rx, status_local_fault, status_remote_fault
   );
 
@@ -99,8 +98,6 @@ reg                     status_local_fault_d1;
 
 
 /*AUTOWIRE*/
-// Beginning of automatic wires (for undeclared instantiated-module outputs)
-// End of automatics
 
 wire [8:0]             int_sources;
 

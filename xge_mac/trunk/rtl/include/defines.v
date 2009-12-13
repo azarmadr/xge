@@ -51,7 +51,7 @@
 `define SEQUENCE   8'h9c
 `define SFD        8'hd5
 `define START      8'hfb
-`define TERMINATE  8'hfd 	
+`define TERMINATE  8'hfd
 `define ERROR      8'hfe
 
 
@@ -107,3 +107,6 @@
 `define MEM_AUTO_MEDIUM 2
 
 
+// Changed system packet interface to big endian (12/12/2009)
+// Comment out to use legacy mode
+`define BIGENDIAN

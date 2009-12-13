@@ -52,12 +52,8 @@ input         reset_xgmii_tx_n;
 
 
 /*AUTOREG*/
-// Beginning of automatic regs (for this module's undeclared outputs)
-// End of automatics
 
 /*AUTOWIRE*/
-// Beginning of automatic wires (for undeclared instantiated-module outputs)
-// End of automatics
 
 //wire  [0:0]             sig_out;
 

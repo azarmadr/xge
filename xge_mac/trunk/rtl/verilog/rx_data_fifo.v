@@ -40,10 +40,10 @@
 
 module rx_data_fifo(/*AUTOARG*/
   // Outputs
-  rxdfifo_wfull, rxdfifo_rdata, rxdfifo_rstatus, rxdfifo_rempty, 
-  rxdfifo_ralmost_empty, 
+  rxdfifo_wfull, rxdfifo_rdata, rxdfifo_rstatus, rxdfifo_rempty,
+  rxdfifo_ralmost_empty,
   // Inputs
-  clk_xgmii_rx, clk_156m25, reset_xgmii_rx_n, reset_156m25_n, 
+  clk_xgmii_rx, clk_156m25, reset_xgmii_rx_n, reset_156m25_n,
   rxdfifo_wdata, rxdfifo_wstatus, rxdfifo_wen, rxdfifo_ren
   );
 

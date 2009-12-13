@@ -40,10 +40,10 @@
 
 module tx_hold_fifo(/*AUTOARG*/
   // Outputs
-  txhfifo_wfull, txhfifo_walmost_full, txhfifo_rdata, 
-  txhfifo_rstatus, txhfifo_rempty, txhfifo_ralmost_empty, 
+  txhfifo_wfull, txhfifo_walmost_full, txhfifo_rdata, txhfifo_rstatus,
+  txhfifo_rempty, txhfifo_ralmost_empty,
   // Inputs
-  clk_xgmii_tx, reset_xgmii_tx_n, txhfifo_wdata, txhfifo_wstatus, 
+  clk_xgmii_tx, reset_xgmii_tx_n, txhfifo_wdata, txhfifo_wstatus,
   txhfifo_wen, txhfifo_ren
   );
 

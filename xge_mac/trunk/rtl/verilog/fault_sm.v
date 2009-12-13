@@ -40,9 +40,9 @@
 
 module fault_sm(/*AUTOARG*/
   // Outputs
-  status_local_fault_crx, status_remote_fault_crx, 
+  status_local_fault_crx, status_remote_fault_crx,
   // Inputs
-  clk_xgmii_rx, reset_xgmii_rx_n, local_fault_msg_det, 
+  clk_xgmii_rx, reset_xgmii_rx_n, local_fault_msg_det,
   remote_fault_msg_det
   );
 
@@ -73,8 +73,6 @@ reg    [1:0]  seq_type;
 reg    [1:0]  seq_add;
 
 /*AUTOWIRE*/
-// Beginning of automatic wires (for undeclared instantiated-module outputs)
-// End of automatics
 
 
 parameter [1:0]

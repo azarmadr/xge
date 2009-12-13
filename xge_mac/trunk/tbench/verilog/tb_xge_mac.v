@@ -43,13 +43,12 @@ module tb;
 
 
 /*AUTOREG*/
-// Beginning of automatic regs (for this module's undeclared outputs)
-// End of automatics
 
 reg [7:0]     tx_buffer[0:10000];
 integer       tx_length;
 
 reg           clk_156m25;
+reg           clk_312m50;
 reg           clk_xgmii_rx;
 reg           clk_xgmii_tx;
 
@@ -88,6 +87,16 @@ wire  [31:0]  wb_dat_i;
 wire [7:0]              xgmii_rxc;
 wire [63:0]             xgmii_rxd;
 
+wire [3:0]              tx_dataout;
+
+wire                    xaui_tx_l0_n;
+wire                    xaui_tx_l0_p;
+wire                    xaui_tx_l1_n;
+wire                    xaui_tx_l1_p;
+wire                    xaui_tx_l2_n;
+wire                    xaui_tx_l2_p;
+wire                    xaui_tx_l3_n;
+wire                    xaui_tx_l3_p;
 
 xge_mac dut(/*AUTOINST*/
             // Outputs
@@ -127,6 +136,98 @@ xge_mac dut(/*AUTOINST*/
             .xgmii_rxc                  (xgmii_rxc[7:0]),
             .xgmii_rxd                  (xgmii_rxd[63:0]));
 
+`ifdef GXB
+// Example of transceiver instance
+gxb gxb(// Outputs
+        .rx_ctrldetect                  ({xgmii_rxc[7],
+                                          xgmii_rxc[5],
+                                          xgmii_rxc[3],
+                                          xgmii_rxc[1],
+                                          xgmii_rxc[6],
+                                          xgmii_rxc[4],
+                                          xgmii_rxc[2],
+                                          xgmii_rxc[0]}),
+        .rx_dataout                     ({xgmii_rxd[63:56],
+                                          xgmii_rxd[47:40],
+                                          xgmii_rxd[31:24],
+                                          xgmii_rxd[15:8],
+                                          xgmii_rxd[55:48],
+                                          xgmii_rxd[39:32],
+                                          xgmii_rxd[23:16],
+                                          xgmii_rxd[7:0]}),
+        .tx_dataout                     (tx_dataout[3:0]),
+        // Inputs
+        .pll_inclk                      (clk_156m25),
+        .rx_analogreset                 (~reset_156m25_n),
+        .rx_cruclk                      ({clk_156m25, clk_156m25, clk_156m25, clk_156m25}),
+        .rx_datain                      (tx_dataout[3:0]),
+        .rx_digitalreset                (~reset_156m25_n),
+        .tx_ctrlenable                  ({xgmii_txc[7],
+                                          xgmii_txc[5],
+                                          xgmii_txc[3],
+                                          xgmii_txc[1],
+                                          xgmii_txc[6],
+                                          xgmii_txc[4],
+                                          xgmii_txc[2],
+                                          xgmii_txc[0]}),
+        .tx_datain                      ({xgmii_txd[63:56],
+                                          xgmii_txd[47:40],
+                                          xgmii_txd[31:24],
+                                          xgmii_txd[15:8],
+                                          xgmii_txd[55:48],
+                                          xgmii_txd[39:32],
+                                          xgmii_txd[23:16],
+                                          xgmii_txd[7:0]}),
+        .tx_digitalreset                (~reset_156m25_n));
+`endif
+
+`ifdef XIL
+// Example of transceiver instance
+xaui_block xaui(// Outputs
+                .txoutclk               (),
+                .xgmii_rxd              (xgmii_rxd[63:0]),
+                .xgmii_rxc              (xgmii_rxc[7:0]),
+                .xaui_tx_l0_p           (xaui_tx_l0_p),
+                .xaui_tx_l0_n           (xaui_tx_l0_n),
+                .xaui_tx_l1_p           (xaui_tx_l1_p),
+                .xaui_tx_l1_n           (xaui_tx_l1_n),
+                .xaui_tx_l2_p           (xaui_tx_l2_p),
+                .xaui_tx_l2_n           (xaui_tx_l2_n),
+                .xaui_tx_l3_p           (xaui_tx_l3_p),
+                .xaui_tx_l3_n           (xaui_tx_l3_n),
+                .txlock                 (),
+                .align_status           (),
+                .sync_status            (),
+                .mgt_tx_ready           (),
+                .drp_o                  (),
+                .drp_rdy                (),
+                .status_vector          (),
+                // Inputs
+                .dclk                   (clk_156m25),
+                .clk156                 (clk_156m25),
+                .clk312                 (clk_312m50),
+                .refclk                 (clk_156m25),
+                .reset                  (~reset_156m25_n),
+                .reset156               (~reset_156m25_n),
+                .xgmii_txd              (xgmii_txd[63:0]),
+                .xgmii_txc              (xgmii_txc[7:0]),
+                .xaui_rx_l0_p           (xaui_tx_l0_p),
+                .xaui_rx_l0_n           (xaui_tx_l0_n),
+                .xaui_rx_l1_p           (xaui_tx_l1_p),
+                .xaui_rx_l1_n           (xaui_tx_l1_n),
+                .xaui_rx_l2_p           (xaui_tx_l2_p),
+                .xaui_rx_l2_n           (xaui_tx_l2_n),
+                .xaui_rx_l3_p           (xaui_tx_l3_p),
+                .xaui_rx_l3_n           (xaui_tx_l3_n),
+                .signal_detect          (4'b1111),
+                .drp_addr               (7'b0),
+                .drp_en                 (2'b0),
+                .drp_i                  (16'b0),
+                .drp_we                 (2'b0),
+                .configuration_vector   (7'b0));
+
+glbl glbl();
+`endif
 
 //---
 // Unused for this testbench
@@ -142,11 +243,14 @@ assign wb_we_i = 1'b0;
 
 //---
 // XGMII Loopback
-// This test is done with loopback on XGMII
+// This test is done with loopback on XGMII or using one of the tranceiver examples
 
-assign xgmii_rxc = xgmii_txc;
-assign xgmii_rxd = xgmii_txd;
-
+`ifndef GXB
+  `ifndef XIL
+    assign xgmii_rxc = xgmii_txc;
+    assign xgmii_rxd = xgmii_txd;
+  `endif
+`endif
 
 //---
 // Clock generation
@@ -161,8 +265,15 @@ initial begin
         clk_xgmii_rx = ~clk_xgmii_rx;
         clk_xgmii_tx = ~clk_xgmii_tx;
     end
-end 
+end
 
+initial begin
+    clk_312m50 = 1'b0;
+    forever begin
+        WaitPS(1600);
+        clk_312m50 = ~clk_312m50;
+    end
+end
 
 //---
 // Reset Generation
@@ -238,14 +349,14 @@ task TxPacket;
                 pkt_tx_mod = tx_length % 8;
             end
 
-            pkt_tx_data[`LANE0] = tx_buffer[i];
-            pkt_tx_data[`LANE1] = tx_buffer[i+1];
-            pkt_tx_data[`LANE2] = tx_buffer[i+2];
-            pkt_tx_data[`LANE3] = tx_buffer[i+3];
-            pkt_tx_data[`LANE4] = tx_buffer[i+4];
-            pkt_tx_data[`LANE5] = tx_buffer[i+5];
-            pkt_tx_data[`LANE6] = tx_buffer[i+6];
-            pkt_tx_data[`LANE7] = tx_buffer[i+7];
+            pkt_tx_data[`LANE7] = tx_buffer[i];
+            pkt_tx_data[`LANE6] = tx_buffer[i+1];
+            pkt_tx_data[`LANE5] = tx_buffer[i+2];
+            pkt_tx_data[`LANE4] = tx_buffer[i+3];
+            pkt_tx_data[`LANE3] = tx_buffer[i+4];
+            pkt_tx_data[`LANE2] = tx_buffer[i+5];
+            pkt_tx_data[`LANE1] = tx_buffer[i+6];
+            pkt_tx_data[`LANE0] = tx_buffer[i+7];
 
             @(posedge clk_156m25);
             WaitNS(1);
@@ -276,7 +387,7 @@ task CmdTxPacket;
         if (count == 1) begin
 
             for (i = 0; i < tx_length; i = i + 1) begin
-                
+
                 count = $fscanf(file, "%2X", data);
                 if (count) begin
                     tx_buffer[i] = data;
@@ -307,13 +418,13 @@ task ProcessCmdFile;
         while (!$feof(file_cmd)) begin
 
             count = $fscanf(file_cmd, "%s", str);
-            if (count != 1) $stop;
+            if (count != 1) $continue;
 
             $display("CMD %s", str);
 
             case (str)
 
-              "SEND_PKT": 
+              "SEND_PKT":
                 begin
                     CmdTxPacket(file_cmd);
                 end
@@ -324,14 +435,17 @@ task ProcessCmdFile;
 
         $fclose(file_cmd);
 
-        WaitNS(2000);
+        WaitNS(50000);
         $stop;
 
     end
 endtask
 
 initial begin
-    WaitNS(2000);
+    WaitNS(5000);
+`ifdef XIL
+    WaitNS(200000);
+`endif
     ProcessCmdFile();
 end
 
@@ -377,7 +491,7 @@ task RxPacket;
 endtask
 
 initial begin
-    
+
     forever begin
 
         if (pkt_rx_avail) begin
@@ -391,4 +505,3 @@ initial begin
 end
 
 endmodule
-
