@@ -39,6 +39,9 @@
 `include "timescale.v"
 `include "defines.v"
 
+//`define GXB
+//`define XIL
+
 module tb;
 
 
