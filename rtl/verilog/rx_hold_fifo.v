@@ -40,10 +40,10 @@
 
 module rx_hold_fifo(/*AUTOARG*/
   // Outputs
-  rxhfifo_rdata, rxhfifo_rstatus, rxhfifo_rempty, 
-  rxhfifo_ralmost_empty, 
+  rxhfifo_rdata, rxhfifo_rstatus, rxhfifo_rempty,
+  rxhfifo_ralmost_empty,
   // Inputs
-  clk_xgmii_rx, reset_xgmii_rx_n, rxhfifo_wdata, rxhfifo_wstatus, 
+  clk_xgmii_rx, reset_xgmii_rx_n, rxhfifo_wdata, rxhfifo_wstatus,
   rxhfifo_wen, rxhfifo_ren
   );
 

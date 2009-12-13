@@ -40,10 +40,10 @@
 
 module tx_data_fifo(/*AUTOARG*/
   // Outputs
-  txdfifo_wfull, txdfifo_walmost_full, txdfifo_rdata, 
-  txdfifo_rstatus, txdfifo_rempty, txdfifo_ralmost_empty, 
+  txdfifo_wfull, txdfifo_walmost_full, txdfifo_rdata, txdfifo_rstatus,
+  txdfifo_rempty, txdfifo_ralmost_empty,
   // Inputs
-  clk_xgmii_tx, clk_156m25, reset_xgmii_tx_n, reset_156m25_n, 
+  clk_xgmii_tx, clk_156m25, reset_xgmii_tx_n, reset_156m25_n,
   txdfifo_wdata, txdfifo_wstatus, txdfifo_wen, txdfifo_ren
   );
 

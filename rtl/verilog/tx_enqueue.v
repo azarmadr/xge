@@ -40,10 +40,10 @@
 
 module tx_enqueue(/*AUTOARG*/
   // Outputs
-  pkt_tx_full, txdfifo_wdata, txdfifo_wstatus, txdfifo_wen, 
-  status_txdfifo_ovflow_tog, 
+  pkt_tx_full, txdfifo_wdata, txdfifo_wstatus, txdfifo_wen,
+  status_txdfifo_ovflow_tog,
   // Inputs
-  clk_156m25, reset_156m25_n, pkt_tx_data, pkt_tx_val, pkt_tx_sop, 
+  clk_156m25, reset_156m25_n, pkt_tx_data, pkt_tx_val, pkt_tx_sop,
   pkt_tx_eop, pkt_tx_mod, txdfifo_wfull, txdfifo_walmost_full
   );
 
@@ -53,7 +53,7 @@ module tx_enqueue(/*AUTOARG*/
 
 input         clk_156m25;
 input         reset_156m25_n;
-   
+
 input  [63:0] pkt_tx_data;
 input         pkt_tx_val;
 input         pkt_tx_sop;
@@ -80,8 +80,6 @@ reg [7:0]               txdfifo_wstatus;
 // End of automatics
 
 /*AUTOWIRE*/
-// Beginning of automatic wires (for undeclared instantiated-module outputs)
-// End of automatics
 
 
 reg             txd_ovflow;
@@ -112,7 +110,7 @@ always @(posedge clk_156m25 or negedge reset_156m25_n) begin
 
         //---
         // FIFO errors, used to generate interrupts
-        
+
         if (next_txd_ovflow && !txd_ovflow) begin
             status_txdfifo_ovflow_tog <= ~status_txdfifo_ovflow_tog;
         end
@@ -125,23 +123,29 @@ always @(/*AS*/pkt_tx_data or pkt_tx_eop or pkt_tx_mod or pkt_tx_sop
          or pkt_tx_val or txd_ovflow or txdfifo_wfull) begin
 
     txdfifo_wstatus = `TXSTATUS_NONE;
-    txdfifo_wdata = pkt_tx_data;
     txdfifo_wen = pkt_tx_val;
 
     next_txd_ovflow = txd_ovflow;
 
+    `ifdef BIGENDIAN
+    txdfifo_wdata = {pkt_tx_data[7:0], pkt_tx_data[15:8], pkt_tx_data[23:16], pkt_tx_data[31:24],
+                     pkt_tx_data[39:32], pkt_tx_data[47:40], pkt_tx_data[55:48],
+                     pkt_tx_data[63:56]};
+    `else
+    txdfifo_wdata = pkt_tx_data;
+    `endif
 
     // Write SOP marker to fifo.
-    
+
     if (pkt_tx_val && pkt_tx_sop) begin
 
         txdfifo_wstatus[`TXSTATUS_SOP] = 1'b1;
 
     end
 
-    
+
     // Write EOP marker to fifo.
-    
+
     if (pkt_tx_val) begin
 
         if (pkt_tx_eop) begin
@@ -172,4 +176,3 @@ end
 
 
 endmodule
-

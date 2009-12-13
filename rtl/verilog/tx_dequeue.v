@@ -40,13 +40,13 @@
 
 module tx_dequeue(/*AUTOARG*/
   // Outputs
-  txdfifo_ren, txhfifo_ren, txhfifo_wdata, txhfifo_wstatus, 
-  txhfifo_wen, xgmii_txd, xgmii_txc, status_txdfifo_udflow_tog, 
+  txdfifo_ren, txhfifo_ren, txhfifo_wdata, txhfifo_wstatus,
+  txhfifo_wen, xgmii_txd, xgmii_txc, status_txdfifo_udflow_tog,
   // Inputs
-  clk_xgmii_tx, reset_xgmii_tx_n, ctrl_tx_enable_ctx, 
-  status_local_fault_ctx, status_remote_fault_ctx, txdfifo_rdata, 
-  txdfifo_rstatus, txdfifo_rempty, txdfifo_ralmost_empty, 
-  txhfifo_rdata, txhfifo_rstatus, txhfifo_rempty, 
+  clk_xgmii_tx, reset_xgmii_tx_n, ctrl_tx_enable_ctx,
+  status_local_fault_ctx, status_remote_fault_ctx, txdfifo_rdata,
+  txdfifo_rstatus, txdfifo_rempty, txdfifo_ralmost_empty,
+  txhfifo_rdata, txhfifo_rstatus, txhfifo_rempty,
   txhfifo_ralmost_empty, txhfifo_wfull, txhfifo_walmost_full
   );
 `include "CRC32_D64.v"
@@ -103,8 +103,6 @@ reg [63:0]              xgmii_txd;
 // End of automatics
 
 /*AUTOWIRE*/
-// Beginning of automatic wires (for undeclared instantiated-module outputs)
-// End of automatics
 
 
 reg   [63:0]    xgxs_txd;
