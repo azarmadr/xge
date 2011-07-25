@@ -94,7 +94,7 @@ void xgmii_if::transmit() {
 
             //---
             // Inject errors
-            
+
             if (pkt->err_flags & PKT_FLAG_ERR_CRC) {
                 pkt->crc++;
             }
@@ -227,7 +227,7 @@ void xgmii_if::transmit() {
             ifg = 0;
 
         }
-        else if (preamblecnt >7 && bytecnt == pkt->err_info && 
+        else if (preamblecnt >7 && bytecnt == pkt->err_info &&
                  (pkt->err_flags & PKT_FLAG_ERR_CODING)) {
 
             //---
@@ -451,7 +451,7 @@ void xgmii_if::monitor() {
 
         if (((rxd & 0xffffffff) == 0x0100009c && (rxc & 0xf) == 0x1) &&
             (((rxd >> 32) & 0xffffffff) == 0x0100009c && ((rxc > 4) & 0xf) == 0x1)) {
-            
+
             //--
             // Local fault detection
 
@@ -500,5 +500,3 @@ void xgmii_if::monitor() {
         wait();
     }
 };
-
-

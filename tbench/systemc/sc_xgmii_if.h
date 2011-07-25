@@ -55,10 +55,10 @@ SC_MODULE(xgmii_if) {
     sc_in<bool> reset_xgmii_n;
 
     sc_out<unsigned int> xgmii_rxc;
-    sc_out<sc_bv<64> > xgmii_rxd;
+    sc_out<long unsigned int > xgmii_rxd;
 
     sc_in<unsigned int> xgmii_txc;
-    sc_in<sc_bv<64> > xgmii_txd;
+    sc_in<long unsigned int > xgmii_txd;
 
   private:
 
@@ -99,7 +99,7 @@ SC_MODULE(xgmii_if) {
     void receive();
     void monitor();
 
-    SC_CTOR(xgmii_if) : 
+    SC_CTOR(xgmii_if) :
         tx_fifo (2),
         rx_fifo (2) {
 

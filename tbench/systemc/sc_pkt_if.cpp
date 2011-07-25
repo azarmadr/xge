@@ -80,14 +80,14 @@ void pkt_if::transmit() {
 
             for (int i = 0; i < pkt->length; i += 8) {
 
-                pkt_tx_data = pkt->data[i+7] << 56 |
-                    pkt->data[i+6] << 48 |
-                    pkt->data[i+5] << 40 |
-                    pkt->data[i+4] << 32 |
-                    pkt->data[i+3] << 24 |
-                    pkt->data[i+2] << 16 |
-                    pkt->data[i+1] << 8 |
-                    pkt->data[i];
+                pkt_tx_data = pkt->data[i] << 56 |
+                    pkt->data[i+1] << 48 |
+                    pkt->data[i+2] << 40 |
+                    pkt->data[i+3] << 32 |
+                    pkt->data[i+4] << 24 |
+                    pkt->data[i+5] << 16 |
+                    pkt->data[i+6] << 8 |
+                    pkt->data[i+7];
 
                 if (i == 0) {
                     pkt_tx_sop = 1;
@@ -181,7 +181,7 @@ void pkt_if::receive() {
 
                 for (int lane = 0; lane < 8; lane++) {
 
-                    pkt->data[pkt->length++] = (data >> (8 * lane)) & 0xff;
+                    pkt->data[pkt->length++] = (data >> (8 * (7-lane))) & 0xff;
 
                     if (pkt->length >= 10000) {
                         cout << "ERROR: Packet too long" << endl;
@@ -194,7 +194,7 @@ void pkt_if::receive() {
                 }
 
                 // Stop on EOP
-                
+
                 if (pkt_rx_eop) {
                     break;
                 }
@@ -216,7 +216,7 @@ void pkt_if::receive() {
         }
         else {
             pkt_rx_ren = 0;
-            wait();        
+            wait();
         }
     }
 };

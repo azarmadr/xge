@@ -7,5 +7,6 @@
 +incdir+../../rtl/megafunctions_altera
 
 +define+SIM_NO_PCS
++define+BIGENDIAN
 
 
