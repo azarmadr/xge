@@ -49,7 +49,8 @@
 #include <sys/stat.h>
 
 #include "systemc.h"		// SystemC global header
-#include "SpTraceVcd.h"
+//#include "SpTraceVcd.h"
+#include "verilated_vcd_sc.h"  // Tracing
 
 #include "crc.h"
 
@@ -71,12 +72,12 @@ int sc_main(int argc, char* argv[]) {
 
     cout << ("Defining Clocks\n");
 
-    sc_clock clk_156m25 ("clk_156m25", 10, 0.5, 3, true); 
+    sc_clock clk_156m25 ("clk_156m25", 10, 0.5, 3, true);
     sc_clock clk_wb ("clk_wb", 29, 0.5, 3, true);
     sc_clock clk_xgmii ("clk_xgmii", 10, 0.5, 3, true);
 
     sc_signal<bool> pkt_rx_ren;
-    sc_signal<sc_bv<64> > pkt_tx_data;
+    sc_signal<long unsigned int > pkt_tx_data;
     sc_signal<bool> pkt_tx_eop;
     sc_signal<unsigned int> pkt_tx_mod;
     sc_signal<bool> pkt_tx_sop;
@@ -90,10 +91,10 @@ int sc_main(int argc, char* argv[]) {
     sc_signal<bool> wb_stb_i;
     sc_signal<bool> wb_we_i;
     sc_signal<unsigned int> xgmii_rxc;
-    sc_signal<sc_bv<64> > xgmii_rxd;
+    sc_signal<long unsigned int > xgmii_rxd;
 
     sc_signal<bool> pkt_rx_avail;
-    sc_signal<sc_bv<64> > pkt_rx_data;
+    sc_signal<long unsigned int > pkt_rx_data;
     sc_signal<bool> pkt_rx_eop;
     sc_signal<unsigned int> pkt_rx_mod;
     sc_signal<bool> pkt_rx_sop;
@@ -104,7 +105,7 @@ int sc_main(int argc, char* argv[]) {
     sc_signal<unsigned int> wb_dat_o;
     sc_signal<bool> wb_int_o;
     sc_signal<unsigned int> xgmii_txc;
-    sc_signal<sc_bv<64> > xgmii_txd;
+    sc_signal<long unsigned int > xgmii_txd;
 
     //==========
     // Part under test
@@ -221,7 +222,7 @@ int sc_main(int argc, char* argv[]) {
 
 #if WAVES
     cout << "Enabling waves...\n";
-    SpTraceFile* tfp = new SpTraceFile;
+    VerilatedVcdSc* tfp = new VerilatedVcdSc;
     top->trace (tfp, 99);
     tfp->open ("vl_dump.vcd");
 #endif
@@ -230,7 +231,7 @@ int sc_main(int argc, char* argv[]) {
     // Start of Test
 
     cout <<("Test beginning...\n");
-	
+
     reset_156m25_n = 0;
     wb_rst_i = 1;
     reset_xgmii_n = 0;
@@ -256,8 +257,6 @@ int sc_main(int argc, char* argv[]) {
 #endif
 
     cout << "*-* All Finished *-*\n";
-    
+
     return(0);
 }
-
-
