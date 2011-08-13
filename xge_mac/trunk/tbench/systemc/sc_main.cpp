@@ -72,9 +72,9 @@ int sc_main(int argc, char* argv[]) {
 
     cout << ("Defining Clocks\n");
 
-    sc_clock clk_156m25 ("clk_156m25", 10, 0.5, 3, true);
-    sc_clock clk_wb ("clk_wb", 29, 0.5, 3, true);
-    sc_clock clk_xgmii ("clk_xgmii", 10, 0.5, 3, true);
+    sc_clock clk_156m25 ("clk_156m25", 10, SC_NS, 0.5);
+    sc_clock clk_wb ("clk_wb", 29, SC_NS, 0.5);
+    sc_clock clk_xgmii ("clk_xgmii", 10, SC_NS, 0.5);
 
     sc_signal<bool> pkt_rx_ren;
     sc_signal<long unsigned int > pkt_tx_data;
@@ -212,13 +212,13 @@ int sc_main(int argc, char* argv[]) {
     // SystemC to interconnect everything for testing.
     cout <<("Test initialization...\n");
 
-    sc_start(1);
+    sc_start(1, SC_NS);
 
     reset_156m25_n = 0;
     wb_rst_i = 1;
     reset_xgmii_n = 0;
 
-    sc_start(1);
+    sc_start(1, SC_NS);
 
 #if WAVES
     cout << "Enabling waves...\n";
@@ -247,7 +247,7 @@ int sc_main(int argc, char* argv[]) {
             reset_xgmii_n = 1;
         }
 
-        sc_start(1);
+        sc_start(1, SC_NS);
     }
 
     top->final();
