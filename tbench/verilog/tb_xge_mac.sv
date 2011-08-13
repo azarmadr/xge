@@ -421,7 +421,7 @@ task ProcessCmdFile;
         while (!$feof(file_cmd)) begin
 
             count = $fscanf(file_cmd, "%s", str);
-            if (count != 1) $continue;
+            if (count != 1) continue;
 
             $display("CMD %s", str);
 
