@@ -67,6 +67,9 @@ reg           pkt_tx_sop;
 reg           pkt_tx_eop;
 reg  [2:0]    pkt_tx_mod;
 
+integer       tx_count;
+integer       rx_count;
+
 /*AUTOWIRE*/
 // Beginning of automatic wires (for undeclared instantiated-module outputs)
 wire                    pkt_rx_avail;           // From dut of xge_mac.v
@@ -244,6 +247,11 @@ assign wb_stb_i = 1'b0;
 assign wb_we_i = 1'b0;
 
 
+initial begin
+    tx_count = 0;
+    rx_count = 0;
+end
+
 //---
 // XGMII Loopback
 // This test is done with loopback on XGMII or using one of the tranceiver examples
@@ -370,6 +378,8 @@ task TxPacket;
         pkt_tx_eop = 1'b0;
         pkt_tx_mod = 3'b0;
 
+        tx_count = tx_count + 1;
+
     end
 
 endtask
@@ -471,6 +481,8 @@ task RxPacket;
 
                 if (pkt_rx_sop) begin
                     $display("\n\n------------------------");
+                    $display("Received Packet");
+                    $display("------------------------");
                 end
 
                 $display("%x", pkt_rx_data);
@@ -490,6 +502,8 @@ task RxPacket;
 
         end
 
+        rx_count = rx_count + 1;
+
     end
 endtask
 
@@ -498,7 +512,13 @@ initial begin
     forever begin
 
         if (pkt_rx_avail) begin
+
             RxPacket();
+
+            if (rx_count == tx_count) begin
+                $display("All packets received. Sumulation done!!!\n");
+            end
+
         end
 
         @(posedge clk_156m25);

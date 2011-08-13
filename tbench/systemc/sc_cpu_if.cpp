@@ -89,14 +89,12 @@ uint cpu_if::read(uint addr) {
     bus_lock.lock();
     bus_addr = addr;
     bus_write = false;
-    bus_start.notify();
+    bus_start.post();
 
     //--
     // Wait for transaction to complete
 
-    while (bus_done.trywait()) {
-        wait(10, SC_NS);
-    };
+    bus_done.wait();
 
     //--
     // Get the data, free the bus
@@ -117,14 +115,12 @@ void cpu_if::write(uint addr, uint data) {
     bus_addr = addr;
     bus_data = data;
     bus_write = true;
-    bus_start.notify();
+    bus_start.post();
 
     //--
     // Wait for transaction to complete
 
-    while (bus_done.trywait()) {
-        wait(10, SC_NS);
-    };
+    bus_done.wait();
 
     //--
     // Free the bus
@@ -139,7 +135,7 @@ void cpu_if::writebits(uint addr, uint hbit, uint lbit, uint value) {
     uint mask;
 
     mask = ~((0xffffffff << lbit) & (0xffffffff >> (31-lbit)));
-    
+
     data = mask & read(addr);
     data = data | ((value << lbit) & ~mask);
 
@@ -152,7 +148,9 @@ void cpu_if::transactor() {
     while (true) {
 
         // Wait for a transaction
-        wait(bus_start);
+        while (bus_start.trywait()) {
+            wait();
+        }
 
         if (!bus_write) {
 
@@ -228,7 +226,7 @@ void cpu_if::monitor() {
             // Read interrupt register when interrupt signal is asserted
 
             data = read(cpu_if::CPUREG_INT_PENDING);
-           
+
             cout << "READ INTERRUPTS: 0x" << hex << data << dec << endl;
 
             //---
@@ -243,7 +241,7 @@ void cpu_if::monitor() {
             }
 
             if ((data >> cpu_if::INT_LOCAL_FAULT) & 0x1) {
-                
+
                 data = read(cpu_if::CPUREG_INT_STATUS);
 
                 if ((data >> cpu_if::INT_LOCAL_FAULT) & 0x1) {
@@ -282,6 +280,6 @@ void cpu_if::monitor() {
 
         }
 
-        wait();        
+        wait();
     }
 };

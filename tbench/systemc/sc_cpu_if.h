@@ -100,7 +100,7 @@ SC_MODULE(cpu_if) {
     scoreboard::sbSourceId sb_id;
 
     sc_mutex bus_lock;
-    sc_event bus_start;
+    sc_semaphore bus_start;
     sc_semaphore bus_done;
 
     uint bus_addr;
@@ -132,7 +132,7 @@ SC_MODULE(cpu_if) {
     void transactor();
     void monitor();
 
-    SC_CTOR(cpu_if): bus_done(0) {
+    SC_CTOR(cpu_if): bus_start(0), bus_done(0) {
 
         SC_CTHREAD (monitor, wb_clk_i.pos());
         SC_CTHREAD (transactor, wb_clk_i.pos());

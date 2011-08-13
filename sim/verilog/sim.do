@@ -42,7 +42,7 @@ vlog -timescale 1ps/1ps +incdir+../../rtl/include ../../rtl/verilog/xge_mac.v
 
 
 
-vlog -timescale 1ps/1ps +incdir+../../rtl/include ../../tbench/verilog/tb_xge_mac.v
+vlog -timescale 1ps/1ps +incdir+../../rtl/include ../../tbench/verilog/tb_xge_mac.sv
 
 
 
