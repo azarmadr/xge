@@ -77,7 +77,7 @@ int sc_main(int argc, char* argv[]) {
     sc_clock clk_xgmii ("clk_xgmii", 10, SC_NS, 0.5);
 
     sc_signal<bool> pkt_rx_ren;
-    sc_signal<long unsigned int > pkt_tx_data;
+    sc_signal<unsigned long long > pkt_tx_data;
     sc_signal<bool> pkt_tx_eop;
     sc_signal<unsigned int> pkt_tx_mod;
     sc_signal<bool> pkt_tx_sop;
@@ -91,10 +91,10 @@ int sc_main(int argc, char* argv[]) {
     sc_signal<bool> wb_stb_i;
     sc_signal<bool> wb_we_i;
     sc_signal<unsigned int> xgmii_rxc;
-    sc_signal<long unsigned int > xgmii_rxd;
+    sc_signal<unsigned long long > xgmii_rxd;
 
     sc_signal<bool> pkt_rx_avail;
-    sc_signal<long unsigned int > pkt_rx_data;
+    sc_signal<unsigned long long > pkt_rx_data;
     sc_signal<bool> pkt_rx_eop;
     sc_signal<unsigned int> pkt_rx_mod;
     sc_signal<bool> pkt_rx_sop;
@@ -105,7 +105,7 @@ int sc_main(int argc, char* argv[]) {
     sc_signal<unsigned int> wb_dat_o;
     sc_signal<bool> wb_int_o;
     sc_signal<unsigned int> xgmii_txc;
-    sc_signal<long unsigned int > xgmii_txd;
+    sc_signal<unsigned long long > xgmii_txd;
 
     //==========
     // Part under test
