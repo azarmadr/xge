@@ -72,12 +72,12 @@ SC_MODULE(testbench) {
     sc_out<bool> wb_we_i;
 
     sc_out<unsigned int> xgmii_rxc;
-    sc_out<long unsigned int > xgmii_rxd;
+    sc_out<unsigned long long > xgmii_rxd;
 
     sc_in<unsigned int> xgmii_txc;
-    sc_in<long unsigned int > xgmii_txd;
+    sc_in<unsigned long long > xgmii_txd;
 
-    sc_out<long unsigned int > pkt_tx_data;
+    sc_out<unsigned long long > pkt_tx_data;
     sc_out<bool> pkt_tx_eop;
     sc_out<unsigned int> pkt_tx_mod;
     sc_out<bool> pkt_tx_sop;
@@ -86,7 +86,7 @@ SC_MODULE(testbench) {
     sc_in<bool> pkt_tx_full;
 
     sc_in<bool> pkt_rx_avail;
-    sc_in<long unsigned int > pkt_rx_data;
+    sc_in<unsigned long long > pkt_rx_data;
     sc_in<bool> pkt_rx_eop;
     sc_in<unsigned int> pkt_rx_mod;
     sc_in<bool> pkt_rx_err;
