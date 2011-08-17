@@ -35,89 +35,12 @@
 ////                                                              ////
 //////////////////////////////////////////////////////////////////////
 
-#ifndef PKT_IF_H
-#define PKT_IF_H
+// 64-bit Types for 32-bit and 64-bit OS
 
-#include "systemc.h"
-
-#include "sc_defines.h"
-
-#include "sc_packet.h"
-#include "sc_scoreboard.h"
-
-SC_MODULE(pkt_if) {
-
-  public:
-
-    //---
-    // Ports
-
-    sc_in<bool> clk_156m25;
-
-    sc_in<bool> reset_156m25_n;
-
-    sc_out<vluint64_t > pkt_tx_data;
-    sc_out<bool> pkt_tx_eop;
-    sc_out<unsigned int> pkt_tx_mod;
-    sc_out<bool> pkt_tx_sop;
-    sc_out<bool> pkt_tx_val;
-
-    sc_in<bool> pkt_tx_full;
-
-    sc_in<bool> pkt_rx_avail;
-    sc_in<vluint64_t > pkt_rx_data;
-    sc_in<bool> pkt_rx_eop;
-    sc_in<unsigned int> pkt_rx_mod;
-    sc_in<bool> pkt_rx_err;
-    sc_in<bool> pkt_rx_sop;
-    sc_in<bool> pkt_rx_val;
-
-    sc_out<bool> pkt_rx_ren;
-
-  private:
-
-    //---
-    // Variables
-
-    sc_fifo<packet_t*> tx_fifo;
-    sc_fifo<packet_t*> rx_fifo;
-
-    scoreboard *sb;
-    scoreboard::sbSourceId sb_id;
-
-  public:
-
-    //---
-    // Variables
-
-    bool disable_rx;
-    bool allow_rx_sop_err;
-
-    //---
-    // Functions
-
-    sc_fifo<packet_t*> * get_tx_fifo_ptr();
-    sc_fifo<packet_t*> * get_rx_fifo_ptr();
-
-    void init(void);
-    void connect_scoreboard(scoreboard *sbptr, scoreboard::sbSourceId sid);
-
-    //---
-    // Threads
-
-    void transmit();
-    void receive();
-
-    SC_CTOR(pkt_if) :
-        tx_fifo (2),
-        rx_fifo (2) {
-
-        SC_CTHREAD (transmit, clk_156m25.pos());
-
-        SC_CTHREAD (receive, clk_156m25.pos());
-
-    }
-
-};
-
-#endif
+# if defined(__WORDSIZE) && (__WORDSIZE == 64)
+typedef long			vlsint64_t;
+typedef unsigned long		vluint64_t;
+# else
+typedef long long		vlsint64_t;
+typedef unsigned long long	vluint64_t;
+# endif
