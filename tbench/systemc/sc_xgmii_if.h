@@ -40,6 +40,8 @@
 
 #include "systemc.h"
 
+#include "sc_defines.h"
+
 #include "sc_packet.h"
 #include "sc_scoreboard.h"
 
@@ -55,10 +57,10 @@ SC_MODULE(xgmii_if) {
     sc_in<bool> reset_xgmii_n;
 
     sc_out<unsigned int> xgmii_rxc;
-    sc_out<unsigned long long > xgmii_rxd;
+    sc_out<vluint64_t > xgmii_rxd;
 
     sc_in<unsigned int> xgmii_txc;
-    sc_in<unsigned long long > xgmii_txd;
+    sc_in<vluint64_t > xgmii_txd;
 
   private:
 

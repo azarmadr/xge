@@ -40,6 +40,8 @@
 
 #include "systemc.h"		// SystemC global header
 
+#include "sc_defines.h"
+
 #include "sc_cpu_if.h"
 #include "sc_pkt_if.h"
 #include "sc_xgmii_if.h"
@@ -72,12 +74,12 @@ SC_MODULE(testbench) {
     sc_out<bool> wb_we_i;
 
     sc_out<unsigned int> xgmii_rxc;
-    sc_out<unsigned long long > xgmii_rxd;
+    sc_out<vluint64_t > xgmii_rxd;
 
     sc_in<unsigned int> xgmii_txc;
-    sc_in<unsigned long long > xgmii_txd;
+    sc_in<vluint64_t > xgmii_txd;
 
-    sc_out<unsigned long long > pkt_tx_data;
+    sc_out<vluint64_t > pkt_tx_data;
     sc_out<bool> pkt_tx_eop;
     sc_out<unsigned int> pkt_tx_mod;
     sc_out<bool> pkt_tx_sop;
@@ -86,7 +88,7 @@ SC_MODULE(testbench) {
     sc_in<bool> pkt_tx_full;
 
     sc_in<bool> pkt_rx_avail;
-    sc_in<unsigned long long > pkt_rx_data;
+    sc_in<vluint64_t > pkt_rx_data;
     sc_in<bool> pkt_rx_eop;
     sc_in<unsigned int> pkt_rx_mod;
     sc_in<bool> pkt_rx_err;
