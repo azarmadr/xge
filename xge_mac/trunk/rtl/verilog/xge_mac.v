@@ -202,7 +202,7 @@ rx_dequeue rx_dq0(/*AUTOINST*/
                   .rxdfifo_rempty       (rxdfifo_rempty),
                   .rxdfifo_ralmost_empty(rxdfifo_ralmost_empty),
                   .pkt_rx_ren           (pkt_rx_ren));
-   
+
 rx_data_fifo rx_data_fifo0(/*AUTOINST*/
                            // Outputs
                            .rxdfifo_wfull       (rxdfifo_wfull),
@@ -359,10 +359,10 @@ sync_clk_xgmii_tx sync_clk_xgmii_tx0(/*AUTOINST*/
                                      .status_local_fault_crx(status_local_fault_crx),
                                      .status_remote_fault_crx(status_remote_fault_crx));
 
-sync_clk_core sync_clk_core0(/*AUTOINST*/
-                             // Inputs
-                             .clk_xgmii_tx      (clk_xgmii_tx),
-                             .reset_xgmii_tx_n  (reset_xgmii_tx_n));
+//sync_clk_core sync_clk_core0(/*AUTOINST*/
+//                             // Inputs
+//                             .clk_xgmii_tx      (clk_xgmii_tx),
+//                             .reset_xgmii_tx_n  (reset_xgmii_tx_n));
 
 wishbone_if wishbone_if0(/*AUTOINST*/
                          // Outputs
@@ -389,4 +389,3 @@ wishbone_if wishbone_if0(/*AUTOINST*/
                          .status_remote_fault   (status_remote_fault));
 
 endmodule
-
