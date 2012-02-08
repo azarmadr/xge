@@ -60,8 +60,6 @@ module generic_fifo(
 parameter DWIDTH = 32;
 parameter AWIDTH = 3;
 parameter RAM_DEPTH = (1 << AWIDTH);
-parameter SYNC_WRITE = 1;
-parameter SYNC_READ = 1;
 parameter REGISTER_READ = 0;
 parameter EARLY_READ = 0;
 parameter CLOCK_CROSSING = 1;
@@ -96,7 +94,7 @@ wire [AWIDTH:0]  mem_raddr;
 
 
 generic_fifo_ctrl #(.AWIDTH (AWIDTH),
-                    .RAM_DEPTH (RAM_DEPTH), 
+                    .RAM_DEPTH (RAM_DEPTH),
                     .EARLY_READ (EARLY_READ),
                     .CLOCK_CROSSING (CLOCK_CROSSING),
                     .ALMOST_EMPTY_THRESH (ALMOST_EMPTY_THRESH),
@@ -107,7 +105,7 @@ generic_fifo_ctrl #(.AWIDTH (AWIDTH),
         .wen (wen),
         .wfull (wfull),
         .walmost_full (walmost_full),
-        
+
         .mem_wen (mem_wen),
         .mem_waddr (mem_waddr),
 
@@ -128,21 +126,19 @@ generate
         generic_mem_small #(.DWIDTH (DWIDTH),
                             .AWIDTH (AWIDTH),
                             .RAM_DEPTH (RAM_DEPTH),
-                            .SYNC_WRITE (SYNC_WRITE),
-                            .SYNC_READ (SYNC_READ),
                             .REGISTER_READ (REGISTER_READ)
                             )
           mem0(.wclk (wclk),
                .wrst_n (wrst_n),
-               .wen (mem_wen),	
-               .waddr (mem_waddr),
+               .wen (mem_wen),
+               .waddr (mem_waddr[AWIDTH-1:0]),
                .wdata (wdata),
-               
+
                .rclk (rclk),
                .rrst_n (rrst_n),
                .ren (mem_ren),
                .roen (ren),
-               .raddr (mem_raddr),
+               .raddr (mem_raddr[AWIDTH-1:0]),
                .rdata (rdata)
                );
 
@@ -153,21 +149,19 @@ generate
         generic_mem_medium #(.DWIDTH (DWIDTH),
                              .AWIDTH (AWIDTH),
                              .RAM_DEPTH (RAM_DEPTH),
-                             .SYNC_WRITE (SYNC_WRITE),
-                             .SYNC_READ (SYNC_READ),
                              .REGISTER_READ (REGISTER_READ)
                              )
           mem0(.wclk (wclk),
                .wrst_n (wrst_n),
-               .wen (mem_wen),	
-               .waddr (mem_waddr),
+               .wen (mem_wen),
+               .waddr (mem_waddr[AWIDTH-1:0]),
                .wdata (wdata),
-               
+
                .rclk (rclk),
                .rrst_n (rrst_n),
                .ren (mem_ren),
                .roen (ren),
-               .raddr (mem_raddr),
+               .raddr (mem_raddr[AWIDTH-1:0]),
                .rdata (rdata)
                );
 
@@ -176,6 +170,3 @@ generate
 endgenerate
 
 endmodule
-
-
-

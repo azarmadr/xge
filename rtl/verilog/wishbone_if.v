@@ -64,7 +64,7 @@ output        wb_int_o;
 
 input         status_crc_error;
 input         status_fragment_error;
-   
+
 input         status_txdfifo_ovflow;
 
 input         status_txdfifo_udflow;
@@ -146,8 +146,8 @@ always @(posedge wb_clk_i or posedge wb_rst_i) begin
 
         cpuack <= 1'b0;
 
-        status_remote_fault_d1 <= status_remote_fault;
-        status_local_fault_d1 <= status_local_fault;
+        status_remote_fault_d1 <= 1'b0;
+        status_local_fault_d1 <= 1'b0;
 
     end
     else begin
@@ -171,7 +171,7 @@ always @(posedge wb_clk_i or posedge wb_rst_i) begin
               `CPUREG_CONFIG0: begin
                   wb_dat_o <= {31'b0, cpureg_config0};
               end
-                           
+
               `CPUREG_INT_PENDING: begin
                   wb_dat_o <= {23'b0, cpureg_int_pending};
                   cpureg_int_pending <= int_sources;
@@ -203,7 +203,7 @@ always @(posedge wb_clk_i or posedge wb_rst_i) begin
               `CPUREG_CONFIG0: begin
                   cpureg_config0 <= wb_dat_i[0:0];
               end
-                           
+
               `CPUREG_INT_PENDING: begin
                   cpureg_int_pending <= wb_dat_i[8:0] | cpureg_int_pending | int_sources;
               end
@@ -224,4 +224,3 @@ always @(posedge wb_clk_i or posedge wb_rst_i) begin
 end
 
 endmodule
-

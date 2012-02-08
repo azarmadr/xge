@@ -57,10 +57,10 @@ input         clk_xgmii_tx;
 input         reset_xgmii_tx_n;
 
 input         ctrl_tx_enable_ctx;
-   
+
 input         status_local_fault_ctx;
 input         status_remote_fault_ctx;
-   
+
 input  [63:0] txdfifo_rdata;
 input  [7:0]  txdfifo_rstatus;
 input         txdfifo_rempty;
@@ -80,7 +80,7 @@ output        txhfifo_ren;
 
 output [63:0] txhfifo_wdata;
 output [7:0]  txhfifo_wstatus;
-output        txhfifo_wen;   
+output        txhfifo_wen;
 
 output [63:0] xgmii_txd;
 output [7:0]  xgmii_txc;
@@ -157,7 +157,7 @@ reg             next_frame_available;
 
 reg   [63:0]    next_txhfifo_wdata;
 reg   [7:0]     next_txhfifo_wstatus;
-reg             next_txhfifo_wen;   
+reg             next_txhfifo_wen;
 
 reg             txdfifo_ren_d1;
 
@@ -197,7 +197,7 @@ always @(posedge clk_xgmii_tx or negedge reset_xgmii_tx_n) begin
 
             // If local fault detected, send remote fault message to
             // link partner
-            
+
             xgmii_txd <= {`REMOTE_FAULT, 8'h0, 8'h0, `SEQUENCE,
                           `REMOTE_FAULT, 8'h0, 8'h0, `SEQUENCE};
             xgmii_txc <= {4'b0001, 4'b0001};
@@ -206,7 +206,7 @@ always @(posedge clk_xgmii_tx or negedge reset_xgmii_tx_n) begin
 
             // If remote fault detected, inhibit transmission and send
             // idle codes
-            
+
             xgmii_txd <= {8{`IDLE}};
             xgmii_txc <= 8'hff;
         end
@@ -285,7 +285,7 @@ always @(posedge clk_xgmii_tx or negedge reset_xgmii_tx_n) begin
 
         //---
         // FIFO errors, used to generate interrupts.
-        
+
         if (txdfifo_ren && txdfifo_rempty) begin
             status_txdfifo_udflow_tog <= ~status_txdfifo_udflow_tog;
         end
@@ -330,7 +330,7 @@ always @(/*AS*/crc32_tx or ctrl_tx_enable_ctx or curr_state_enc or eop
               // are detected.
 
               if (ctrl_tx_enable_ctx && frame_available &&
-                  !status_local_fault_ctx && !status_local_fault_ctx) begin
+                  !status_local_fault_ctx && !status_remote_fault_ctx) begin
 
                   txhfifo_ren = 1'b1;
                   next_state_enc = SM_PREAMBLE;
@@ -371,7 +371,7 @@ always @(/*AS*/crc32_tx or ctrl_tx_enable_ctx or curr_state_enc or eop
              // Depending on deficit idle count calculations, add 4 bytes
              // or IFG or not. This will determine on which lane start the
              // next frame.
-             
+
              if (ifg_4b_add) begin
                  next_start_on_lane0 = 1'b0;
              end
@@ -394,7 +394,7 @@ always @(/*AS*/crc32_tx or ctrl_tx_enable_ctx or curr_state_enc or eop
               // transition to next state.
 
               if (txhfifo_rstatus[`TXSTATUS_EOP]) begin
-                  
+
                   txhfifo_ren = 1'b0;
                   next_frame_available = !txhfifo_ralmost_empty;
                   next_state_enc = SM_EOP;
@@ -417,7 +417,7 @@ always @(/*AS*/crc32_tx or ctrl_tx_enable_ctx or curr_state_enc or eop
               next_eop[5] = txhfifo_rstatus[2:0] == 3'd6;
               next_eop[6] = txhfifo_rstatus[2:0] == 3'd7;
               next_eop[7] = txhfifo_rstatus[2:0] == 3'd0;
-                
+
           end
 
         SM_EOP:
@@ -427,7 +427,7 @@ always @(/*AS*/crc32_tx or ctrl_tx_enable_ctx or curr_state_enc or eop
               // of EOP read from fifo. Also insert CRC read from control fifo.
 
               if (eop[0]) begin
-                  next_xgxs_txd = {{2{`IDLE}}, `TERMINATE, 
+                  next_xgxs_txd = {{2{`IDLE}}, `TERMINATE,
                                    crc32_tx[31:0], txhfifo_rdata_d1[7:0]};
                   next_xgxs_txc = 8'b11100000;
               end
@@ -473,7 +473,7 @@ always @(/*AS*/crc32_tx or ctrl_tx_enable_ctx or curr_state_enc or eop
                   // If there is not another frame ready to be transmitted, interface
                   // will go idle and idle deficit idle count calculation is irrelevant.
                   // Set deficit to 0.
-                  
+
                   next_ifg_deficit = 3'b0;
 
               end
@@ -508,7 +508,7 @@ always @(/*AS*/crc32_tx or ctrl_tx_enable_ctx or curr_state_enc or eop
               //   IFG and Add columns assume no deficit applied
               //   IFG+DIC and Add+DIC assume deficit must be applied
               //
-              //                        Start lane 0       Start lane 4	
+              //                        Start lane 0       Start lane 4
               // EOP Pads IFG  IFG+DIC	Add   Add+DIC	   Add    Add IFG
               // 0   3    11   15        8     12           12     16
               // 1   2    10   14        8     12           12     16
@@ -523,7 +523,7 @@ always @(/*AS*/crc32_tx or ctrl_tx_enable_ctx or curr_state_enc or eop
 
                   // If there is not another frame ready to be transmitted, interface
                   // will go idle and idle deficit idle count calculation is irrelevant.
-                  
+
                   next_ifg_4b_add = 1'b0;
                   next_ifg_8b_add = 1'b0;
                   next_ifg_8b2_add = 1'b0;
@@ -532,7 +532,7 @@ always @(/*AS*/crc32_tx or ctrl_tx_enable_ctx or curr_state_enc or eop
               else if (next_ifg_deficit[2] == ifg_deficit[2]) begin
 
                   // Add 4 bytes IFG
-                  
+
                   next_ifg_4b_add = (eop[0] & !start_on_lane0) |
                                     (eop[1] & !start_on_lane0) |
                                     (eop[2] & !start_on_lane0) |
@@ -543,7 +543,7 @@ always @(/*AS*/crc32_tx or ctrl_tx_enable_ctx or curr_state_enc or eop
                                     (eop[7] & !start_on_lane0);
 
                   // Add 8 bytes IFG
-                  
+
                   next_ifg_8b_add = (eop[0]) |
                                     (eop[1]) |
                                     (eop[2]) |
@@ -572,7 +572,7 @@ always @(/*AS*/crc32_tx or ctrl_tx_enable_ctx or curr_state_enc or eop
                                     (eop[7] & !start_on_lane0);
 
                   // Add 8 bytes IFG
-                  
+
                   next_ifg_8b_add = (eop[0]) |
                                     (eop[1]) |
                                     (eop[2]) |
@@ -701,7 +701,7 @@ always @(/*AS*/crc32_d64 or txhfifo_wen or txhfifo_wstatus) begin
     else begin
         crc_data = crc32_d64;
     end
-    
+
 end
 
 always @(/*AS*/byte_cnt or curr_state_pad or txdfifo_rdata
@@ -758,7 +758,7 @@ always @(/*AS*/byte_cnt or curr_state_pad or txdfifo_rdata
 
                       // Pad up to LANE3, keep the other 4 bytes for crc that will
                       // be inserted by dequeue engine.
-                      
+
                       next_txhfifo_wstatus[2:0] = 3'd4;
 
                       // Pad end bytes with zeros.
@@ -776,11 +776,11 @@ always @(/*AS*/byte_cnt or curr_state_pad or txdfifo_rdata
                   else begin
 
                       txdfifo_ren = 1'b0;
-                         
+
                   end
 
               end
-        
+
           end
 
       end
@@ -795,7 +795,7 @@ always @(/*AS*/byte_cnt or curr_state_pad or txdfifo_rdata
               next_txhfifo_wdata = 64'b0;
               next_txhfifo_wstatus = `TXSTATUS_NONE;
               next_txhfifo_wen = 1'b1;
-              
+
               if (byte_cnt == 14'd56) begin
 
 
@@ -833,13 +833,17 @@ always @(posedge clk_xgmii_tx or negedge reset_xgmii_tx_n) begin
 
         txhfifo_wdata <= 64'b0;
         txhfifo_wstatus <= 8'b0;
-        txhfifo_wen <= 1'b0;   
+        txhfifo_wen <= 1'b0;
 
         byte_cnt <= 14'b0;
 
         shift_crc_data <= 64'b0;
         shift_crc_eop <= 4'b0;
         shift_crc_cnt <= 4'b0;
+
+        crc32_d64 <= 32'b0;
+        crc32_d8 <= 32'b0;
+        crc32_tx <= 32'b0;
 
     end
     else begin
@@ -855,7 +859,7 @@ always @(posedge clk_xgmii_tx or negedge reset_xgmii_tx_n) begin
 
         //---
         // Reset byte count on SOP
-        
+
         if (next_txhfifo_wen) begin
 
             if (next_txhfifo_wstatus[`TXSTATUS_SOP]) begin
@@ -887,7 +891,7 @@ always @(posedge clk_xgmii_tx or negedge reset_xgmii_tx_n) begin
 
             // Last bytes calculated 8-bit at a time instead of 64-bit. Start
             // this process at the end of the frame.
-     
+
             crc32_d8 <= crc32_d64;
 
             shift_crc_data <= txhfifo_wdata;
@@ -910,7 +914,7 @@ always @(posedge clk_xgmii_tx or negedge reset_xgmii_tx_n) begin
 
             shift_crc_data <= {8'b0, shift_crc_data[63:8]};
             shift_crc_eop <= shift_crc_eop - 4'd1;
-        
+
         end
 
 
@@ -918,7 +922,7 @@ always @(posedge clk_xgmii_tx or negedge reset_xgmii_tx_n) begin
         // Update CRC register at the end of calculation. Always update after 8
         // cycles for deterministic results, even if a single byte was present in
         // last data word.
-        
+
         if (shift_crc_cnt == 4'b1) begin
 
             crc32_tx <= ~reverse_32b(crc32_d8);
@@ -935,4 +939,3 @@ always @(posedge clk_xgmii_tx or negedge reset_xgmii_tx_n) begin
 end
 
 endmodule
-
