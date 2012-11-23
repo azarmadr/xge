@@ -35,6 +35,8 @@
 ////                                                              ////
 //////////////////////////////////////////////////////////////////////
 
+// Different synthesis option for FIFOs
+// `define XIL
 
 // CPU Registers
 

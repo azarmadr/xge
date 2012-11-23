@@ -35,6 +35,8 @@
 ////                                                              ////
 //////////////////////////////////////////////////////////////////////
 
+`include "defines.v"
+
 /* synthesis ramstyle = "M512" */
 
 module generic_mem_small(
