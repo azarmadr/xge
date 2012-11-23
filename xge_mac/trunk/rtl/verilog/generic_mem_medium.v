@@ -35,6 +35,8 @@
 ////                                                              ////
 //////////////////////////////////////////////////////////////////////
 
+`include "defines.v"
+
 /* synthesis ramstyle = "M4K" */
 
 module generic_mem_medium(
