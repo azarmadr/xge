@@ -18,4 +18,6 @@ emacs -batch verilog/tx_hold_fifo.v -l ../custom.el -f verilog-auto -f save-buff
 
 emacs -batch verilog/xge_mac.v -l ../custom.el -f verilog-auto -f save-buffer
 
+emacs -batch examples/test_chip.v -l ../custom.el -f verilog-auto -f save-buffer
+
 emacs -batch ../tbench/verilog/tb_xge_mac.v -l ../../rtl/custom.el -f verilog-auto -f save-buffer

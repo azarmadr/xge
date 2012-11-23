@@ -87,7 +87,7 @@ reg    [DWIDTH-1:0] rdata;
 // Registers
 
 reg  [DWIDTH-1:0] mem_rdata;
-
+reg  [AWIDTH-1:0] raddr_d1;
 
 // Memory
 
@@ -113,6 +113,31 @@ end
 // Memory Read
 
 // Generate registered memory read
+
+`ifdef XIL
+
+//always @(posedge rclk)
+//begin
+//    if (ren) begin
+//        raddr_d1 <= raddr;
+//    end
+//end
+//always @(raddr_d1, rclk)
+//begin
+//    mem_rdata = mem[raddr_d1[AWIDTH-1:0]];
+//end
+
+always @(posedge rclk)
+begin
+    if (!rrst_n) begin
+        mem_rdata <= {(DWIDTH){1'b0}};
+    end else if (ren) begin
+        mem_rdata <= mem[raddr[AWIDTH-1:0]];
+    end
+end
+
+`else
+
 always @(posedge rclk or negedge rrst_n)
 begin
     if (!rrst_n) begin
@@ -121,6 +146,8 @@ begin
         mem_rdata <= mem[raddr[AWIDTH-1:0]];
     end
 end
+
+`endif
 
 generate
     if (REGISTER_READ) begin

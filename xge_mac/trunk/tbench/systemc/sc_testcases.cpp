@@ -68,6 +68,7 @@ void testcases::run_tests(void) {
 
     test_packet_size(50, 90, 50);
     test_packet_size(9000, 9020, 20);
+    test_packet_size(9599, 9601, 10);
 
     test_deficit_idle_count();
 

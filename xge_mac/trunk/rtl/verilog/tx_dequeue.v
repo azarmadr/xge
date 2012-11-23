@@ -297,8 +297,8 @@ end
 always @(/*AS*/crc32_tx or ctrl_tx_enable_ctx or curr_state_enc or eop
          or frame_available or ifg_4b_add or ifg_8b2_add or ifg_8b_add
          or ifg_deficit or start_on_lane0 or status_local_fault_ctx
-         or txhfifo_ralmost_empty or txhfifo_rdata_d1
-         or txhfifo_rempty or txhfifo_rstatus) begin
+         or status_remote_fault_ctx or txhfifo_ralmost_empty
+         or txhfifo_rdata_d1 or txhfifo_rempty or txhfifo_rstatus) begin
 
     next_state_enc = curr_state_enc;
 
