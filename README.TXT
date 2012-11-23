@@ -59,6 +59,23 @@ processed by the MAC receive engine and stored in the receive fifo. The testbenc
 frames from the receive interface (pkt_rx_data) and prints out the results.
 
 
+Simulation output:
+
+  ------------------------
+  Received Packet
+  ------------------------
+  0000010000010010
+  9400000288b50001
+  0203040506070809
+  0a0b0c0d0e0f1011
+  1213141516171819
+  1a1b1c1d1e1f2021
+  2223242526272829
+  2a2b2c2d2e2f3031
+  3233343506b33d40
+  ------------------------
+  All packets received. Sumulation done!!!
+
 
 ------------------------
 2.2 SystemC Simulation
@@ -88,7 +105,7 @@ as packets are transmited and received on the various interfaces.
 Simulation output:
 
     -----------------------
-    Packet size 
+    Packet size
     -----------------------
     SCOREBOARD XGMII INTERFACE TX (60)
     SCOREBOARD XGMII INTERFACE TX (60)
@@ -98,8 +115,3 @@ Simulation output:
     SCOREBOARD XGMII INTERFACE TX (60)
     SCOREBOARD PACKET INTERFACE RX (TX SIZE=60  RX SIZE=60)
     ...
-
-
-
-
-

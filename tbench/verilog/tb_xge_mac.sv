@@ -41,6 +41,7 @@
 
 //`define GXB
 //`define XIL
+//`define XIL_V10
 
 module tb;
 
@@ -235,6 +236,53 @@ xaui_block xaui(// Outputs
 glbl glbl();
 `endif
 
+`ifdef XIL_V10
+// Example of transceiver instance
+xaui_v10_2_block xaui(// Outputs
+                .txoutclk               (),
+                .xgmii_rxd              (xgmii_rxd[63:0]),
+                .xgmii_rxc              (xgmii_rxc[7:0]),
+                .xaui_tx_l0_p           (xaui_tx_l0_p),
+                .xaui_tx_l0_n           (xaui_tx_l0_n),
+                .xaui_tx_l1_p           (xaui_tx_l1_p),
+                .xaui_tx_l1_n           (xaui_tx_l1_n),
+                .xaui_tx_l2_p           (xaui_tx_l2_p),
+                .xaui_tx_l2_n           (xaui_tx_l2_n),
+                .xaui_tx_l3_p           (xaui_tx_l3_p),
+                .xaui_tx_l3_n           (xaui_tx_l3_n),
+                .txlock                 (),
+                .align_status           (),
+                .sync_status            (),
+                .mgt_tx_ready           (),
+                .drp_o                  (),
+                .drp_rdy                (),
+                .status_vector          (),
+                // Inputs
+                .dclk                   (clk_156m25),
+                .clk156                 (clk_156m25),
+                .refclk                 (clk_156m25),
+                .reset                  (~reset_156m25_n),
+                .reset156               (~reset_156m25_n),
+                .xgmii_txd              (xgmii_txd[63:0]),
+                .xgmii_txc              (xgmii_txc[7:0]),
+                .xaui_rx_l0_p           (xaui_tx_l0_p),
+                .xaui_rx_l0_n           (xaui_tx_l0_n),
+                .xaui_rx_l1_p           (xaui_tx_l1_p),
+                .xaui_rx_l1_n           (xaui_tx_l1_n),
+                .xaui_rx_l2_p           (xaui_tx_l2_p),
+                .xaui_rx_l2_n           (xaui_tx_l2_n),
+                .xaui_rx_l3_p           (xaui_tx_l3_p),
+                .xaui_rx_l3_n           (xaui_tx_l3_n),
+                .signal_detect          (4'b1111),
+                .drp_addr               (9'b0),
+                .drp_en                 (4'b0),
+                .drp_i                  (16'b0),
+                .drp_we                 (4'b0),
+                .configuration_vector   (7'b0));
+
+glbl glbl();
+`endif
+
 //---
 // Unused for this testbench
 
@@ -258,8 +306,10 @@ end
 
 `ifndef GXB
   `ifndef XIL
-    assign xgmii_rxc = xgmii_txc;
-    assign xgmii_rxd = xgmii_txd;
+    `ifndef XIL_V10
+      assign xgmii_rxc = xgmii_txc;
+      assign xgmii_rxd = xgmii_txd;
+    `endif
   `endif
 `endif
 

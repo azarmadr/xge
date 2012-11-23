@@ -57,12 +57,12 @@ module rx_enqueue(/*AUTOARG*/
 
 input         clk_xgmii_rx;
 input         reset_xgmii_rx_n;
-   
+
 input  [63:0] xgmii_rxd;
 input  [7:0]  xgmii_rxc;
 
 input         rxdfifo_wfull;
-   
+
 input  [63:0] rxhfifo_rdata;
 input  [7:0]  rxhfifo_rstatus;
 input         rxhfifo_rempty;
@@ -70,7 +70,7 @@ input         rxhfifo_ralmost_empty;
 
 output [63:0] rxdfifo_wdata;
 output [7:0]  rxdfifo_wstatus;
-output        rxdfifo_wen;   
+output        rxdfifo_wen;
 
 output        rxhfifo_ren;
 
@@ -171,6 +171,38 @@ parameter [2:0]
              SM_IDLE = 3'd0,
              SM_RX = 3'd1;
 
+// count the number of set bits in a nibble
+function [2:0] bit_cnt4;
+input   [3:0]   bits;
+    begin
+    case (bits)
+    0:  bit_cnt4 = 0;
+    1:  bit_cnt4 = 1;
+    2:  bit_cnt4 = 1;
+    3:  bit_cnt4 = 2;
+    4:  bit_cnt4 = 1;
+    5:  bit_cnt4 = 2;
+    6:  bit_cnt4 = 2;
+    7:  bit_cnt4 = 3;
+    8:  bit_cnt4 = 1;
+    9:  bit_cnt4 = 2;
+    10: bit_cnt4 = 2;
+    11: bit_cnt4 = 3;
+    12: bit_cnt4 = 2;
+    13: bit_cnt4 = 3;
+    14: bit_cnt4 = 3;
+    15: bit_cnt4 = 4;
+    endcase
+    end
+endfunction
+
+function [3:0] bit_cnt8;
+input   [7:0]   bits;
+    begin
+    bit_cnt8 = bit_cnt4(bits[3:0]) + bit_cnt4(bits[7:4]);
+    end
+endfunction
+
 always @(posedge clk_xgmii_rx or negedge reset_xgmii_rx_n) begin
 
     if (reset_xgmii_rx_n == 1'b0) begin
@@ -213,7 +245,7 @@ always @(posedge clk_xgmii_rx or negedge reset_xgmii_rx_n) begin
         // Look for local/remote messages on lower 4 lanes and upper
         // 4 lanes. This is a 64-bit interface but look at each 32-bit
         // independantly.
-        
+
         local_fault_msg_det[1] <= (xgmii_rxd[63:32] ==
                                    {`LOCAL_FAULT, 8'h0, 8'h0, `SEQUENCE} &&
                                    xgmii_rxc[7:4] == 4'b0001);
@@ -240,7 +272,7 @@ always @(posedge clk_xgmii_rx or negedge reset_xgmii_rx_n) begin
         xgmii_rxc_d1[7:4] <= xgmii_rxc[7:4];
 
         if (xgmii_rxd[`LANE0] == `START && xgmii_rxc[0]) begin
-            
+
             xgxs_rxd_barrel <= xgmii_rxd;
             xgxs_rxc_barrel <= xgmii_rxc;
 
@@ -323,7 +355,7 @@ always @(posedge clk_xgmii_rx or negedge reset_xgmii_rx_n) begin
             // Per Clause 46. Control code during data must be reported
             // as a CRC error. Indicated here by coding_error. Corrupt CRC
             // if coding error is detected.
-        
+
             if (coding_error || next_coding_error) begin
                 crc32_d8 <= ~crc32_d64;
             end
@@ -383,7 +415,7 @@ always @(/*AS*/crc32_d8 or crc_done or crc_rx or pause_frame_hold) begin
     end
 
 end
-          
+
 always @(posedge clk_xgmii_rx or negedge reset_xgmii_rx_n) begin
 
     if (reset_xgmii_rx_n == 1'b0) begin
@@ -455,10 +487,10 @@ always @(/*AS*/coding_error or crc_rx or curr_byte_cnt or curr_state
               crc_clear = 1'b1;
               next_coding_error = 1'b0;
               next_pause_frame = 1'b0;
- 
+
 
               // Detect the start of a frame
-              
+
               if (xgxs_rxd_barrel_d1[`LANE0] == `START && xgxs_rxc_barrel_d1[0] &&
                   xgxs_rxd_barrel_d1[`LANE1] == `PREAMBLE && !xgxs_rxc_barrel_d1[1] &&
                   xgxs_rxd_barrel_d1[`LANE2] == `PREAMBLE && !xgxs_rxc_barrel_d1[2] &&
@@ -477,7 +509,7 @@ always @(/*AS*/coding_error or crc_rx or curr_byte_cnt or curr_state
           begin
 
               // Pause frames are filtered
-              
+
               rxhfifo_wen = !pause_frame;
 
 
@@ -527,7 +559,7 @@ always @(/*AS*/coding_error or crc_rx or curr_byte_cnt or curr_state
 
 
                   // Control character during data phase, force CRC error
-                  
+
                   if (|(xgxs_rxc_barrel_d1 & datamask)) begin
 
                       next_coding_error = 1'b1;
@@ -541,23 +573,24 @@ always @(/*AS*/coding_error or crc_rx or curr_byte_cnt or curr_state
                   end
 
                   /* verilator lint_off WIDTH */
-                  next_byte_cnt = curr_byte_cnt +
-                                  addmask[0] + addmask[1] + addmask[2] + addmask[3] +
-                                  addmask[4] + addmask[5] + addmask[6] + addmask[7];
+                  //next_byte_cnt = curr_byte_cnt +
+                  //                addmask[0] + addmask[1] + addmask[2] + addmask[3] +
+                  //                addmask[4] + addmask[5] + addmask[6] + addmask[7];
                   /* verilator lint_on WIDTH */
-
+                  // don't infer a chain of adders
+                  next_byte_cnt = curr_byte_cnt + {10'b0, bit_cnt8(addmask[7:0])};
 
 
                   // We will not write to the fifo if all is left
                   // are four or less bytes of crc. We also strip off the
                   // crc, which requires looking one cycle ahead
-                  // wstatus: 
+                  // wstatus:
                   //   [2:0] modulus of packet length
 
                   // Look one cycle ahead for TERMINATE in lanes 0 to 4
 
                   if (xgxs_rxd_barrel[`LANE4] == `TERMINATE && xgxs_rxc_barrel[4]) begin
- 
+
                       rxhfifo_wstatus[`RXSTATUS_EOP] = 1'b1;
                       rxhfifo_wstatus[2:0] = 3'd0;
 
@@ -577,11 +610,11 @@ always @(/*AS*/coding_error or crc_rx or curr_byte_cnt or curr_state
                       crc_start_8b = 1'b1;
                       next_crc_bytes = 4'd7;
                       next_crc_rx = {xgxs_rxd_barrel[23:0], xgxs_rxd_barrel_d1[63:56]};
-                  
+
                       next_state = SM_IDLE;
 
                   end
-              
+
                   if (xgxs_rxd_barrel[`LANE2] == `TERMINATE && xgxs_rxc_barrel[2]) begin
 
                       rxhfifo_wstatus[`RXSTATUS_EOP] = 1'b1;
@@ -607,7 +640,7 @@ always @(/*AS*/coding_error or crc_rx or curr_byte_cnt or curr_state
                       next_state = SM_IDLE;
 
                   end
-              
+
                   if (xgxs_rxd_barrel[`LANE0] == `TERMINATE && xgxs_rxc_barrel[0]) begin
 
                       rxhfifo_wstatus[`RXSTATUS_EOP] = 1'b1;
@@ -636,7 +669,7 @@ always @(/*AS*/coding_error or crc_rx or curr_byte_cnt or curr_state
                       next_state = SM_IDLE;
 
                   end
-              
+
                   if (xgxs_rxd_barrel_d1[`LANE6] == `TERMINATE &&
                       xgxs_rxc_barrel_d1[6]) begin
 
@@ -650,7 +683,7 @@ always @(/*AS*/coding_error or crc_rx or curr_byte_cnt or curr_state
                       next_state = SM_IDLE;
 
                   end
-              
+
                   if (xgxs_rxd_barrel_d1[`LANE5] == `TERMINATE &&
                       xgxs_rxc_barrel_d1[5]) begin
 
@@ -721,12 +754,12 @@ always @(/*AS*/crc_done or crc_good or drop_data or pkt_pending
 
     rxhfifo_ren = !rxhfifo_ralmost_empty_d1 ||
                   (pkt_pending && !rxhfifo_rstatus[`RXSTATUS_EOP]);
-    
+
 
     if (rxhfifo_ren_d1 && rxhfifo_rstatus[`RXSTATUS_SOP]) begin
 
         // Reset drop flag on SOP
-        
+
         next_drop_data = 1'b0;
 
     end
@@ -751,7 +784,7 @@ always @(/*AS*/crc_done or crc_good or drop_data or pkt_pending
     if (crc_done && !crc_good) begin
 
         // Flag packet with error when CRC error is detected
-   
+
         rxdfifo_wstatus[`RXSTATUS_ERR] = 1'b1;
 
     end
@@ -759,4 +792,3 @@ always @(/*AS*/crc_done or crc_good or drop_data or pkt_pending
 end
 
 endmodule
-
