@@ -44,7 +44,8 @@ module rx_enqueue(/*AUTOARG*/
   rxhfifo_wdata, rxhfifo_wstatus, rxhfifo_wen, local_fault_msg_det,
   remote_fault_msg_det, status_crc_error_tog,
   status_fragment_error_tog, status_rxdfifo_ovflow_tog,
-  status_pause_frame_rx_tog,
+  status_pause_frame_rx_tog, status_good_frame_rx_tog,
+  status_good_frame_rx_size,
   // Inputs
   clk_xgmii_rx, reset_xgmii_rx_n, xgmii_rxd, xgmii_rxc, rxdfifo_wfull,
   rxhfifo_rdata, rxhfifo_rstatus, rxhfifo_rempty,
@@ -87,6 +88,9 @@ output        status_rxdfifo_ovflow_tog;
 
 output        status_pause_frame_rx_tog;
 
+output        status_good_frame_rx_tog;
+output [13:0] status_good_frame_rx_size;
+
 
 
 
@@ -103,6 +107,8 @@ reg                     rxhfifo_wen;
 reg [7:0]               rxhfifo_wstatus;
 reg                     status_crc_error_tog;
 reg                     status_fragment_error_tog;
+reg [13:0]              status_good_frame_rx_size;
+reg                     status_good_frame_rx_tog;
 reg                     status_pause_frame_rx_tog;
 reg                     status_rxdfifo_ovflow_tog;
 // End of automatics
@@ -141,6 +147,12 @@ reg [2:0]     next_state;
 
 reg [13:0]    curr_byte_cnt;
 reg [13:0]    next_byte_cnt;
+
+reg           frame_end_flag;
+reg           next_frame_end_flag;
+
+reg [2:0]     frame_end_bytes;
+reg [2:0]     next_frame_end_bytes;
 
 reg           fragment_error;
 reg           rxd_ovflow_error;
@@ -236,6 +248,9 @@ always @(posedge clk_xgmii_rx or negedge reset_xgmii_rx_n) begin
         status_rxdfifo_ovflow_tog <= 1'b0;
 
         status_pause_frame_rx_tog <= 1'b0;
+
+        status_good_frame_rx_tog <= 1'b0;
+        status_good_frame_rx_size <= 14'b0;
 
     end
     else begin
@@ -392,6 +407,11 @@ always @(posedge clk_xgmii_rx or negedge reset_xgmii_rx_n) begin
             status_pause_frame_rx_tog <= ~status_pause_frame_rx_tog;
         end
 
+        if (frame_end_flag) begin
+            status_good_frame_rx_tog <= ~status_good_frame_rx_tog;
+            status_good_frame_rx_size <= curr_byte_cnt + {11'b0, frame_end_bytes};
+        end
+
     end
 
 end
@@ -422,6 +442,8 @@ always @(posedge clk_xgmii_rx or negedge reset_xgmii_rx_n) begin
 
         curr_state <= SM_IDLE;
         curr_byte_cnt <= 14'b0;
+        frame_end_flag <= 1'b0;
+        frame_end_bytes <= 3'b0;
         coding_error <= 1'b0;
         pause_frame <= 1'b0;
 
@@ -430,6 +452,8 @@ always @(posedge clk_xgmii_rx or negedge reset_xgmii_rx_n) begin
 
         curr_state <= next_state;
         curr_byte_cnt <= next_byte_cnt;
+        frame_end_flag <= next_frame_end_flag;
+        frame_end_bytes <= next_frame_end_bytes;
         coding_error <= next_coding_error;
         pause_frame <= next_pause_frame;
 
@@ -472,6 +496,8 @@ always @(/*AS*/coding_error or crc_rx or curr_byte_cnt or curr_state
     crc_clear = 1'b0;
 
     next_byte_cnt = curr_byte_cnt;
+    next_frame_end_flag = 1'b0;
+    next_frame_end_bytes = 3'b0;
 
     fragment_error = 1'b0;
 
@@ -578,7 +604,7 @@ always @(/*AS*/coding_error or crc_rx or curr_byte_cnt or curr_state
                   //                addmask[4] + addmask[5] + addmask[6] + addmask[7];
                   /* verilator lint_on WIDTH */
                   // don't infer a chain of adders
-                  next_byte_cnt = curr_byte_cnt + {10'b0, bit_cnt8(addmask[7:0])};
+                  next_byte_cnt = curr_byte_cnt + {10'b0, bit_cnt8(datamask[7:0])};
 
 
                   // We will not write to the fifo if all is left
@@ -598,6 +624,9 @@ always @(/*AS*/coding_error or crc_rx or curr_byte_cnt or curr_state
                       next_crc_bytes = 4'd8;
                       next_crc_rx = xgxs_rxd_barrel[31:0];
 
+                      next_frame_end_flag = 1'b1;
+                      next_frame_end_bytes = 3'd4;
+
                       next_state = SM_IDLE;
 
                   end
@@ -610,6 +639,9 @@ always @(/*AS*/coding_error or crc_rx or curr_byte_cnt or curr_state
                       crc_start_8b = 1'b1;
                       next_crc_bytes = 4'd7;
                       next_crc_rx = {xgxs_rxd_barrel[23:0], xgxs_rxd_barrel_d1[63:56]};
+
+                      next_frame_end_flag = 1'b1;
+                      next_frame_end_bytes = 3'd3;
 
                       next_state = SM_IDLE;
 
@@ -624,6 +656,9 @@ always @(/*AS*/coding_error or crc_rx or curr_byte_cnt or curr_state
                       next_crc_bytes = 4'd6;
                       next_crc_rx = {xgxs_rxd_barrel[15:0], xgxs_rxd_barrel_d1[63:48]};
 
+                      next_frame_end_flag = 1'b1;
+                      next_frame_end_bytes = 3'd2;
+
                       next_state = SM_IDLE;
 
                   end
@@ -637,6 +672,9 @@ always @(/*AS*/coding_error or crc_rx or curr_byte_cnt or curr_state
                       next_crc_bytes = 4'd5;
                       next_crc_rx = {xgxs_rxd_barrel[7:0], xgxs_rxd_barrel_d1[63:40]};
 
+                      next_frame_end_flag = 1'b1;
+                      next_frame_end_bytes = 3'd1;
+
                       next_state = SM_IDLE;
 
                   end
@@ -649,6 +687,8 @@ always @(/*AS*/coding_error or crc_rx or curr_byte_cnt or curr_state
                       crc_start_8b = 1'b1;
                       next_crc_bytes = 4'd4;
                       next_crc_rx = xgxs_rxd_barrel_d1[63:32];
+
+                      next_frame_end_flag = 1'b1;
 
                       next_state = SM_IDLE;
 
@@ -666,6 +706,8 @@ always @(/*AS*/coding_error or crc_rx or curr_byte_cnt or curr_state
                       next_crc_bytes = 4'd3;
                       next_crc_rx = xgxs_rxd_barrel_d1[55:24];
 
+                      next_frame_end_flag = 1'b1;
+
                       next_state = SM_IDLE;
 
                   end
@@ -680,6 +722,8 @@ always @(/*AS*/coding_error or crc_rx or curr_byte_cnt or curr_state
                       next_crc_bytes = 4'd2;
                       next_crc_rx = xgxs_rxd_barrel_d1[47:16];
 
+                      next_frame_end_flag = 1'b1;
+
                       next_state = SM_IDLE;
 
                   end
@@ -693,6 +737,8 @@ always @(/*AS*/coding_error or crc_rx or curr_byte_cnt or curr_state
                       crc_start_8b = 1'b1;
                       next_crc_bytes = 4'd1;
                       next_crc_rx = xgxs_rxd_barrel_d1[39:8];
+
+                      next_frame_end_flag = 1'b1;
 
                       next_state = SM_IDLE;
 

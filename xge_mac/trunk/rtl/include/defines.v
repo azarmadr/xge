@@ -45,6 +45,8 @@
 `define CPUREG_INT_STATUS   8'h0c
 `define CPUREG_INT_MASK     8'h10
 
+`define CPUREG_STATSTXPKTS  8'h84
+`define CPUREG_STATSRXPKTS  8'h94
 
 // Ethernet codes
 

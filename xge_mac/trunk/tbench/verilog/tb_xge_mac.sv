@@ -68,6 +68,14 @@ reg           pkt_tx_sop;
 reg           pkt_tx_eop;
 reg  [2:0]    pkt_tx_mod;
 
+reg           wb_clk_i;
+reg  [31:0]   wb_adr_i;
+reg           wb_cyc_i;
+reg  [31:0]   wb_dat_i;
+reg           wb_rst_i;
+reg           wb_stb_i;
+reg           wb_we_i;
+
 integer       tx_count;
 integer       rx_count;
 
@@ -87,9 +95,6 @@ wire                    wb_int_o;               // From dut of xge_mac.v
 wire [7:0]              xgmii_txc;              // From dut of xge_mac.v
 wire [63:0]             xgmii_txd;              // From dut of xge_mac.v
 // End of automatics
-
-wire  [7:0]   wb_adr_i;
-wire  [31:0]  wb_dat_i;
 
 wire [7:0]              xgmii_rxc;
 wire [63:0]             xgmii_rxd;
@@ -284,16 +289,18 @@ glbl glbl();
 `endif
 
 //---
-// Unused for this testbench
+// Wishbone
 
-assign wb_adr_i = 8'b0;
-assign wb_clk_i = 1'b0;
-assign wb_cyc_i = 1'b0;
-assign wb_dat_i = 32'b0;
-assign wb_rst_i = 1'b1;
-assign wb_stb_i = 1'b0;
-assign wb_we_i = 1'b0;
-
+initial begin
+    wb_adr_i <= 8'b0;
+    wb_cyc_i <= 1'b0;
+    wb_dat_i <= 32'b0;
+    wb_rst_i <= 1'b1;
+    wb_stb_i <= 1'b0;
+    wb_we_i <= 1'b0;
+    @(posedge wb_clk_i);
+    wb_rst_i <= 1'b0;
+end
 
 initial begin
     tx_count = 0;
@@ -317,14 +324,22 @@ end
 // Clock generation
 
 initial begin
-    clk_156m25 = 1'b0;
-    clk_xgmii_rx = 1'b0;
-    clk_xgmii_tx = 1'b0;
+    clk_156m25 <= 1'b0;
+    clk_xgmii_rx <= 1'b0;
+    clk_xgmii_tx <= 1'b0;
     forever begin
         WaitPS(3200);
-        clk_156m25 = ~clk_156m25;
-        clk_xgmii_rx = ~clk_xgmii_rx;
-        clk_xgmii_tx = ~clk_xgmii_tx;
+        clk_156m25 <= ~clk_156m25;
+        clk_xgmii_rx <= ~clk_xgmii_rx;
+        clk_xgmii_tx <= ~clk_xgmii_tx;
+    end
+end
+
+initial begin
+    wb_clk_i <= 1'b0;
+    forever begin
+        WaitPS(20000);
+        wb_clk_i <= ~wb_clk_i;
     end
 end
 
@@ -383,6 +398,25 @@ task WaitPS;
     end
 endtask
 
+//---
+// Task to read register
+
+task CpuRead;
+  input [31:0] addr;
+  output [31:0] data;
+    begin
+        @(posedge wb_clk_i);
+        wb_adr_i <= addr;
+        wb_cyc_i <= 1'b1;
+        wb_stb_i <= 1'b1;
+        @(posedge wb_clk_i);
+        wb_stb_i <= 1'b0;
+        @(posedge wb_clk_i);
+        wb_cyc_i <= 1'b0;
+        data <= wb_dat_o;
+        @(posedge wb_clk_i);
+    end
+endtask
 
 //---
 // Task to send a single packet
@@ -473,6 +507,7 @@ task ProcessCmdFile;
   integer    file_cmd;
   integer  count;
   reg [8*8-1:0] str;
+  reg [31:0] data;
     begin
 
         file_cmd = $fopen("../../tbench/verilog/packets_tx.txt", "r");
@@ -499,6 +534,10 @@ task ProcessCmdFile;
         $fclose(file_cmd);
 
         WaitNS(50000);
+
+        CpuRead(`CPUREG_STATSTXPKTS, data);
+        CpuRead(`CPUREG_STATSRXPKTS, data);
+
         $stop;
 
     end
