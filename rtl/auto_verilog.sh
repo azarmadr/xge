@@ -5,6 +5,7 @@ emacs -batch verilog/sync_clk_core.v -l ../custom.el -f verilog-auto -f save-buf
 
 emacs -batch verilog/wishbone_if.v -l ../custom.el -f verilog-auto -f save-buffer
 emacs -batch verilog/fault_sm.v -l ../custom.el -f verilog-auto -f save-buffer
+emacs -batch verilog/stats.v -l ../custom.el -f verilog-auto -f save-buffer
 
 emacs -batch verilog/rx_dequeue.v -l ../custom.el -f verilog-auto -f save-buffer
 emacs -batch verilog/rx_enqueue.v -l ../custom.el -f verilog-auto -f save-buffer

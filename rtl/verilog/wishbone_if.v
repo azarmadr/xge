@@ -45,7 +45,8 @@ module wishbone_if(/*AUTOARG*/
   wb_clk_i, wb_rst_i, wb_adr_i, wb_dat_i, wb_we_i, wb_stb_i, wb_cyc_i,
   status_crc_error, status_fragment_error, status_txdfifo_ovflow,
   status_txdfifo_udflow, status_rxdfifo_ovflow, status_rxdfifo_udflow,
-  status_pause_frame_rx, status_local_fault, status_remote_fault
+  status_pause_frame_rx, status_local_fault, status_remote_fault,
+  stats_tx_pkts, stats_rx_pkts
   );
 
 
@@ -77,6 +78,9 @@ input         status_pause_frame_rx;
 
 input         status_local_fault;
 input         status_remote_fault;
+
+input  [31:0] stats_tx_pkts;
+input  [31:0] stats_rx_pkts;
 
 output        ctrl_tx_enable;
 
@@ -184,6 +188,14 @@ always @(posedge wb_clk_i or posedge wb_rst_i) begin
 
               `CPUREG_INT_MASK: begin
                   wb_dat_o <= {23'b0, cpureg_int_mask};
+              end
+
+              `CPUREG_STATSTXPKTS: begin
+                  wb_dat_o <= stats_tx_pkts;
+              end
+
+              `CPUREG_STATSRXPKTS: begin
+                  wb_dat_o <= stats_rx_pkts;
               end
 
               default: begin

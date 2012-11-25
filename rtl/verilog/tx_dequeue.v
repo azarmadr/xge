@@ -42,6 +42,7 @@ module tx_dequeue(/*AUTOARG*/
   // Outputs
   txdfifo_ren, txhfifo_ren, txhfifo_wdata, txhfifo_wstatus,
   txhfifo_wen, xgmii_txd, xgmii_txc, status_txdfifo_udflow_tog,
+  status_good_frame_tx_tog, status_good_frame_tx_size,
   // Inputs
   clk_xgmii_tx, reset_xgmii_tx_n, ctrl_tx_enable_ctx,
   status_local_fault_ctx, status_remote_fault_ctx, txdfifo_rdata,
@@ -87,11 +88,15 @@ output [7:0]  xgmii_txc;
 
 output        status_txdfifo_udflow_tog;
 
+output        status_good_frame_tx_tog;
+output [13:0] status_good_frame_tx_size;
 
 
 
 /*AUTOREG*/
 // Beginning of automatic regs (for this module's undeclared outputs)
+reg [13:0]              status_good_frame_tx_size;
+reg                     status_good_frame_tx_tog;
 reg                     status_txdfifo_udflow_tog;
 reg                     txdfifo_ren;
 reg                     txhfifo_ren;
@@ -160,6 +165,8 @@ reg   [7:0]     next_txhfifo_wstatus;
 reg             next_txhfifo_wen;
 
 reg             txdfifo_ren_d1;
+
+reg             frame_end;
 
 parameter [2:0]
              SM_IDLE      = 3'd0,
@@ -245,6 +252,9 @@ always @(posedge clk_xgmii_tx or negedge reset_xgmii_tx_n) begin
 
         status_txdfifo_udflow_tog <= 1'b0;
 
+        status_good_frame_tx_tog <= 1'b0;
+        status_good_frame_tx_size <= 14'b0;
+
     end
     else begin
 
@@ -288,6 +298,14 @@ always @(posedge clk_xgmii_tx or negedge reset_xgmii_tx_n) begin
 
         if (txdfifo_ren && txdfifo_rempty) begin
             status_txdfifo_udflow_tog <= ~status_txdfifo_udflow_tog;
+        end
+
+        //---
+        // Frame count and size
+
+        if (frame_end) begin
+            status_good_frame_tx_tog <= ~status_good_frame_tx_tog;
+            status_good_frame_tx_size <= byte_cnt;
         end
 
     end
@@ -744,14 +762,14 @@ always @(/*AS*/byte_cnt or curr_state_pad or txdfifo_rdata
 
               if (txdfifo_rstatus[`TXSTATUS_EOP]) begin
 
-                  if (byte_cnt < 14'd56) begin
+                  if (byte_cnt < 14'd60) begin
 
                       next_txhfifo_wstatus = `TXSTATUS_NONE;
                       txdfifo_ren = 1'b0;
                       next_state_pad = SM_PAD_PAD;
 
                   end
-                  else if (byte_cnt == 14'd56 &&
+                  else if (byte_cnt == 14'd60 &&
                            (txdfifo_rstatus[2:0] == 3'd1 ||
                             txdfifo_rstatus[2:0] == 3'd2 ||
                             txdfifo_rstatus[2:0] == 3'd3)) begin
@@ -796,7 +814,7 @@ always @(/*AS*/byte_cnt or curr_state_pad or txdfifo_rdata
               next_txhfifo_wstatus = `TXSTATUS_NONE;
               next_txhfifo_wen = 1'b1;
 
-              if (byte_cnt == 14'd56) begin
+              if (byte_cnt == 14'd60) begin
 
 
                   // Pad up to LANE3, keep the other 4 bytes for crc that will
@@ -845,6 +863,8 @@ always @(posedge clk_xgmii_tx or negedge reset_xgmii_tx_n) begin
         crc32_d8 <= 32'b0;
         crc32_tx <= 32'b0;
 
+        frame_end <= 1'b0;
+
     end
     else begin
 
@@ -856,6 +876,7 @@ always @(posedge clk_xgmii_tx or negedge reset_xgmii_tx_n) begin
         txhfifo_wstatus <= next_txhfifo_wstatus;
         txhfifo_wen <= next_txhfifo_wen;
 
+        frame_end <= 1'b0;
 
         //---
         // Reset byte count on SOP
@@ -864,14 +885,27 @@ always @(posedge clk_xgmii_tx or negedge reset_xgmii_tx_n) begin
 
             if (next_txhfifo_wstatus[`TXSTATUS_SOP]) begin
 
-                byte_cnt <= 14'd8;
+                // Init byte count, 8-bytes + 4-bytes for CRC at the end of frame
+
+                byte_cnt <= 14'd12;
 
             end
             else begin
 
-                byte_cnt <= byte_cnt + 14'd8;
+                if (next_txhfifo_wstatus[`TXSTATUS_EOP] && next_txhfifo_wstatus[2:0] != 3'b0) begin
+
+                    byte_cnt <= byte_cnt + {11'b0, next_txhfifo_wstatus[2:0]};
+
+                end
+                else begin
+
+                    byte_cnt <= byte_cnt + 14'd8;
+
+                end
 
             end
+
+            frame_end <= next_txhfifo_wstatus[`TXSTATUS_EOP];
 
         end
 
