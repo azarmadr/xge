@@ -144,6 +144,7 @@ reg   [7:4]     xgxs_txc_barrel;
 
 reg   [63:0]    txhfifo_rdata_d1;
 
+reg   [13:0]    add_cnt;
 reg   [13:0]    byte_cnt;
 
 reg   [31:0]    crc32_d64;
@@ -712,13 +713,21 @@ always @(/*AS*/crc32_tx or ctrl_tx_enable_ctx or curr_state_enc or eop
 end
 
 
-always @(/*AS*/crc32_d64 or txhfifo_wen or txhfifo_wstatus) begin
+always @(/*AS*/crc32_d64 or next_txhfifo_wstatus or txhfifo_wen
+         or txhfifo_wstatus) begin
 
     if (txhfifo_wen && txhfifo_wstatus[`TXSTATUS_SOP]) begin
         crc_data = 32'hffffffff;
     end
     else begin
         crc_data = crc32_d64;
+    end
+
+    if (next_txhfifo_wstatus[`TXSTATUS_EOP] && next_txhfifo_wstatus[2:0] != 3'b0) begin
+        add_cnt = {11'b0, next_txhfifo_wstatus[2:0]};
+    end
+    else begin
+        add_cnt = 14'd8;
     end
 
 end
@@ -893,16 +902,7 @@ always @(posedge clk_xgmii_tx or negedge reset_xgmii_tx_n) begin
             end
             else begin
 
-//                if (next_txhfifo_wstatus[`TXSTATUS_EOP] && next_txhfifo_wstatus[2:0] != 3'b0) begin
-
-//                    byte_cnt <= byte_cnt + {11'b0, next_txhfifo_wstatus[2:0]};
-
-//                end
-//                else begin
-
-                    byte_cnt <= byte_cnt + 14'd8;
-
-//                end
+                byte_cnt <= byte_cnt + add_cnt;
 
             end
 
