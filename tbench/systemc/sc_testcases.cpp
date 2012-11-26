@@ -279,7 +279,7 @@ void testcases::test_txdfifo_ovflow() {
 
     tb->sb.clear_stats();
 
-    tb->pif_gen0.set_pkt_size(1000, 1000);
+    tb->pif_gen0.set_pkt_size(500, 500);
 
     tb->cpu_if0.set_param(cpu_if::TX_ENABLE, 0);
     tb->sb.disable_signal_check = true;
@@ -359,7 +359,7 @@ void testcases::test_rxdfifo_ovflow() {
 
     tb->sb.clear_stats();
 
-    tb->xgm_gen0.set_pkt_size(1000, 1000);
+    tb->xgm_gen0.set_pkt_size(500, 500);
 
     tb->pkt_if0.disable_rx = true;
     tb->pkt_if0.allow_rx_sop_err = true;

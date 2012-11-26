@@ -97,10 +97,10 @@
 
 //
 // FIFO Size: 8 * (2^AWIDTH) will be the size in bytes
-//            7 --> 128 entries, 1024 bytes for data fifo
+//            6 --> 128 entries, 512 bytes for data fifo
 //
-`define TX_DATA_FIFO_AWIDTH 7
-`define RX_DATA_FIFO_AWIDTH 7
+`define TX_DATA_FIFO_AWIDTH 6
+`define RX_DATA_FIFO_AWIDTH 6
 
 //
 // FIFO Size: Holding FIFOs are 16 deep

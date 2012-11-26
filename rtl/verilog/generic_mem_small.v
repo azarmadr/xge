@@ -141,13 +141,24 @@ end
 
 `else
 
-always @(posedge rclk or negedge rrst_n)
+//always @(posedge rclk or negedge rrst_n)
+//begin
+//    if (!rrst_n) begin
+//        mem_rdata <= {(DWIDTH){1'b0}};
+//    end else if (ren) begin
+//        mem_rdata <= mem[raddr[AWIDTH-1:0]];
+//    end
+//end
+
+always @(posedge rclk)
 begin
-    if (!rrst_n) begin
-        mem_rdata <= {(DWIDTH){1'b0}};
-    end else if (ren) begin
-        mem_rdata <= mem[raddr[AWIDTH-1:0]];
+    if (ren) begin
+        raddr_d1 <= raddr;
     end
+end
+always @(raddr_d1, rclk)
+begin
+    mem_rdata = mem[raddr_d1[AWIDTH-1:0]];
 end
 
 `endif

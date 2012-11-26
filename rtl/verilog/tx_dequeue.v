@@ -893,16 +893,16 @@ always @(posedge clk_xgmii_tx or negedge reset_xgmii_tx_n) begin
             end
             else begin
 
-                if (next_txhfifo_wstatus[`TXSTATUS_EOP] && next_txhfifo_wstatus[2:0] != 3'b0) begin
+//                if (next_txhfifo_wstatus[`TXSTATUS_EOP] && next_txhfifo_wstatus[2:0] != 3'b0) begin
 
-                    byte_cnt <= byte_cnt + {11'b0, next_txhfifo_wstatus[2:0]};
+//                    byte_cnt <= byte_cnt + {11'b0, next_txhfifo_wstatus[2:0]};
 
-                end
-                else begin
+//                end
+//                else begin
 
                     byte_cnt <= byte_cnt + 14'd8;
 
-                end
+//                end
 
             end
 
