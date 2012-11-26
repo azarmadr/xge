@@ -40,80 +40,80 @@
 
 module stats(/*AUTOARG*/
   // Outputs
-  stats_tx_pkts, stats_rx_pkts,
+  stats_tx_pkts, stats_tx_octets, stats_rx_pkts, stats_rx_octets,
   // Inputs
-  wb_clk_i, wb_rst_i, status_good_frame_tx_tog,
-  status_good_frame_tx_size, status_good_frame_rx_tog,
-  status_good_frame_rx_size
+  wb_rst_i, wb_clk_i, txsfifo_wen, txsfifo_wdata, rxsfifo_wen,
+  rxsfifo_wdata, reset_xgmii_tx_n, reset_xgmii_rx_n, clk_xgmii_tx,
+  clk_xgmii_rx
   );
 
 
-input         wb_clk_i;
-input         wb_rst_i;
-
-input         status_good_frame_tx_tog;
-input  [13:0] status_good_frame_tx_size;
-
-input         status_good_frame_rx_tog;
-input  [13:0] status_good_frame_rx_size;
-
-output [31:0] stats_tx_pkts;
-
-output [31:0] stats_rx_pkts;
-
-/*AUTOREG*/
-// Beginning of automatic regs (for this module's undeclared outputs)
-reg [31:0]              stats_rx_pkts;
-reg [31:0]              stats_tx_pkts;
+/*AUTOINPUT*/
+// Beginning of automatic inputs (from unused autoinst inputs)
+input                   clk_xgmii_rx;           // To rx_stats_fifo0 of rx_stats_fifo.v
+input                   clk_xgmii_tx;           // To tx_stats_fifo0 of tx_stats_fifo.v
+input                   reset_xgmii_rx_n;       // To rx_stats_fifo0 of rx_stats_fifo.v
+input                   reset_xgmii_tx_n;       // To tx_stats_fifo0 of tx_stats_fifo.v
+input [13:0]            rxsfifo_wdata;          // To rx_stats_fifo0 of rx_stats_fifo.v
+input                   rxsfifo_wen;            // To rx_stats_fifo0 of rx_stats_fifo.v
+input [13:0]            txsfifo_wdata;          // To tx_stats_fifo0 of tx_stats_fifo.v
+input                   txsfifo_wen;            // To tx_stats_fifo0 of tx_stats_fifo.v
+input                   wb_clk_i;               // To tx_stats_fifo0 of tx_stats_fifo.v, ...
+input                   wb_rst_i;               // To tx_stats_fifo0 of tx_stats_fifo.v, ...
 // End of automatics
 
+/*AUTOOUTPUT*/
+// Beginning of automatic outputs (from unused autoinst outputs)
+output [31:0]           stats_rx_octets;        // From stats_sm0 of stats_sm.v
+output [31:0]           stats_rx_pkts;          // From stats_sm0 of stats_sm.v
+output [31:0]           stats_tx_octets;        // From stats_sm0 of stats_sm.v
+output [31:0]           stats_tx_pkts;          // From stats_sm0 of stats_sm.v
+// End of automatics
 
 /*AUTOWIRE*/
+// Beginning of automatic wires (for undeclared instantiated-module outputs)
+wire [13:0]             rxsfifo_rdata;          // From rx_stats_fifo0 of rx_stats_fifo.v
+wire                    rxsfifo_rempty;         // From rx_stats_fifo0 of rx_stats_fifo.v
+wire [13:0]             txsfifo_rdata;          // From tx_stats_fifo0 of tx_stats_fifo.v
+wire                    txsfifo_rempty;         // From tx_stats_fifo0 of tx_stats_fifo.v
+// End of automatics
 
-reg           status_good_frame_tx_tog_d1;
-reg           status_good_frame_rx_tog_d1;
+tx_stats_fifo tx_stats_fifo0(/*AUTOINST*/
+                             // Outputs
+                             .txsfifo_rdata     (txsfifo_rdata[13:0]),
+                             .txsfifo_rempty    (txsfifo_rempty),
+                             // Inputs
+                             .clk_xgmii_tx      (clk_xgmii_tx),
+                             .reset_xgmii_tx_n  (reset_xgmii_tx_n),
+                             .wb_clk_i          (wb_clk_i),
+                             .wb_rst_i          (wb_rst_i),
+                             .txsfifo_wdata     (txsfifo_wdata[13:0]),
+                             .txsfifo_wen       (txsfifo_wen));
 
-reg [31:0]    next_stats_rx_pkts;
-reg [31:0]    next_stats_tx_pkts;
+rx_stats_fifo rx_stats_fifo0(/*AUTOINST*/
+                             // Outputs
+                             .rxsfifo_rdata     (rxsfifo_rdata[13:0]),
+                             .rxsfifo_rempty    (rxsfifo_rempty),
+                             // Inputs
+                             .clk_xgmii_rx      (clk_xgmii_rx),
+                             .reset_xgmii_rx_n  (reset_xgmii_rx_n),
+                             .wb_clk_i          (wb_clk_i),
+                             .wb_rst_i          (wb_rst_i),
+                             .rxsfifo_wdata     (rxsfifo_wdata[13:0]),
+                             .rxsfifo_wen       (rxsfifo_wen));
 
-always @(posedge wb_clk_i or posedge wb_rst_i) begin
-
-    if (wb_rst_i == 1'b1) begin
-
-        status_good_frame_tx_tog_d1 <= status_good_frame_tx_tog;
-        status_good_frame_rx_tog_d1 <= status_good_frame_rx_tog;
-
-        stats_tx_pkts <= 32'b0;
-        stats_rx_pkts <= 32'b0;
-
-    end
-    else begin
-
-        status_good_frame_tx_tog_d1 <= status_good_frame_tx_tog;
-        status_good_frame_rx_tog_d1 <= status_good_frame_rx_tog;
-
-        stats_tx_pkts <= next_stats_tx_pkts;
-        stats_rx_pkts <= next_stats_rx_pkts;
-
-    end
-
-end
-
-always @(/*AS*/stats_rx_pkts or stats_tx_pkts
-         or status_good_frame_rx_tog or status_good_frame_rx_tog_d1
-         or status_good_frame_tx_tog or status_good_frame_tx_tog_d1) begin
-
-    next_stats_tx_pkts = stats_tx_pkts;
-    next_stats_rx_pkts = stats_rx_pkts;
-
-    if (status_good_frame_tx_tog_d1 != status_good_frame_tx_tog) begin
-        next_stats_tx_pkts = stats_tx_pkts + 32'b1;
-    end
-
-    if (status_good_frame_rx_tog_d1 != status_good_frame_rx_tog) begin
-        next_stats_rx_pkts = stats_rx_pkts + 32'b1;
-    end
-
-end
+stats_sm stats_sm0(/*AUTOINST*/
+                   // Outputs
+                   .stats_tx_octets     (stats_tx_octets[31:0]),
+                   .stats_tx_pkts       (stats_tx_pkts[31:0]),
+                   .stats_rx_octets     (stats_rx_octets[31:0]),
+                   .stats_rx_pkts       (stats_rx_pkts[31:0]),
+                   // Inputs
+                   .wb_clk_i            (wb_clk_i),
+                   .wb_rst_i            (wb_rst_i),
+                   .txsfifo_rdata       (txsfifo_rdata[13:0]),
+                   .txsfifo_rempty      (txsfifo_rempty),
+                   .rxsfifo_rdata       (rxsfifo_rdata[13:0]),
+                   .rxsfifo_rempty      (rxsfifo_rempty));
 
 endmodule

@@ -538,6 +538,9 @@ task ProcessCmdFile;
         CpuRead(`CPUREG_STATSTXPKTS, data);
         CpuRead(`CPUREG_STATSRXPKTS, data);
 
+        CpuRead(`CPUREG_STATSTXOCTETS, data);
+        CpuRead(`CPUREG_STATSRXOCTETS, data);
+
         $stop;
 
     end

@@ -44,8 +44,7 @@ module rx_enqueue(/*AUTOARG*/
   rxhfifo_wdata, rxhfifo_wstatus, rxhfifo_wen, local_fault_msg_det,
   remote_fault_msg_det, status_crc_error_tog,
   status_fragment_error_tog, status_rxdfifo_ovflow_tog,
-  status_pause_frame_rx_tog, status_good_frame_rx_tog,
-  status_good_frame_rx_size,
+  status_pause_frame_rx_tog, rxsfifo_wen, rxsfifo_wdata,
   // Inputs
   clk_xgmii_rx, reset_xgmii_rx_n, xgmii_rxd, xgmii_rxc, rxdfifo_wfull,
   rxhfifo_rdata, rxhfifo_rstatus, rxhfifo_rempty,
@@ -88,9 +87,8 @@ output        status_rxdfifo_ovflow_tog;
 
 output        status_pause_frame_rx_tog;
 
-output        status_good_frame_rx_tog;
-output [13:0] status_good_frame_rx_size;
-
+output        rxsfifo_wen;
+output [13:0] rxsfifo_wdata;
 
 
 
@@ -105,10 +103,10 @@ reg                     rxhfifo_ren;
 reg [63:0]              rxhfifo_wdata;
 reg                     rxhfifo_wen;
 reg [7:0]               rxhfifo_wstatus;
+reg [13:0]              rxsfifo_wdata;
+reg                     rxsfifo_wen;
 reg                     status_crc_error_tog;
 reg                     status_fragment_error_tog;
-reg [13:0]              status_good_frame_rx_size;
-reg                     status_good_frame_rx_tog;
 reg                     status_pause_frame_rx_tog;
 reg                     status_rxdfifo_ovflow_tog;
 // End of automatics
@@ -249,11 +247,14 @@ always @(posedge clk_xgmii_rx or negedge reset_xgmii_rx_n) begin
 
         status_pause_frame_rx_tog <= 1'b0;
 
-        status_good_frame_rx_tog <= 1'b0;
-        status_good_frame_rx_size <= 14'b0;
+        rxsfifo_wen <= 1'b0;
+        rxsfifo_wdata <= 14'b0;
 
     end
     else begin
+
+        rxsfifo_wen <= 1'b0;
+        rxsfifo_wdata <= curr_byte_cnt + {11'b0, frame_end_bytes};
 
         //---
         // Link status RC layer
@@ -408,8 +409,7 @@ always @(posedge clk_xgmii_rx or negedge reset_xgmii_rx_n) begin
         end
 
         if (frame_end_flag) begin
-            status_good_frame_rx_tog <= ~status_good_frame_rx_tog;
-            status_good_frame_rx_size <= curr_byte_cnt + {11'b0, frame_end_bytes};
+            rxsfifo_wen <= 1'b1;
         end
 
     end
