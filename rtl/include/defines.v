@@ -40,13 +40,16 @@
 
 // CPU Registers
 
-`define CPUREG_CONFIG0      8'h00
-`define CPUREG_INT_PENDING  8'h08
-`define CPUREG_INT_STATUS   8'h0c
-`define CPUREG_INT_MASK     8'h10
+`define CPUREG_CONFIG0       8'h00
+`define CPUREG_INT_PENDING   8'h08
+`define CPUREG_INT_STATUS    8'h0c
+`define CPUREG_INT_MASK      8'h10
 
-`define CPUREG_STATSTXPKTS  8'h84
-`define CPUREG_STATSRXPKTS  8'h94
+`define CPUREG_STATSTXOCTETS 8'h80
+`define CPUREG_STATSTXPKTS   8'h84
+
+`define CPUREG_STATSRXOCTETS 8'h90
+`define CPUREG_STATSRXPKTS   8'h94
 
 // Ethernet codes
 
@@ -104,6 +107,13 @@
 //
 `define TX_HOLD_FIFO_AWIDTH 4
 `define RX_HOLD_FIFO_AWIDTH 4
+
+
+//
+// FIFO Size: Statistics FIFOs are 16 deep
+//
+`define TX_STAT_FIFO_AWIDTH 4
+`define RX_STAT_FIFO_AWIDTH 4
 
 
 // Memory types

@@ -42,7 +42,7 @@ module tx_dequeue(/*AUTOARG*/
   // Outputs
   txdfifo_ren, txhfifo_ren, txhfifo_wdata, txhfifo_wstatus,
   txhfifo_wen, xgmii_txd, xgmii_txc, status_txdfifo_udflow_tog,
-  status_good_frame_tx_tog, status_good_frame_tx_size,
+  txsfifo_wen, txsfifo_wdata,
   // Inputs
   clk_xgmii_tx, reset_xgmii_tx_n, ctrl_tx_enable_ctx,
   status_local_fault_ctx, status_remote_fault_ctx, txdfifo_rdata,
@@ -88,21 +88,20 @@ output [7:0]  xgmii_txc;
 
 output        status_txdfifo_udflow_tog;
 
-output        status_good_frame_tx_tog;
-output [13:0] status_good_frame_tx_size;
-
+output        txsfifo_wen;
+output [13:0] txsfifo_wdata;
 
 
 /*AUTOREG*/
 // Beginning of automatic regs (for this module's undeclared outputs)
-reg [13:0]              status_good_frame_tx_size;
-reg                     status_good_frame_tx_tog;
 reg                     status_txdfifo_udflow_tog;
 reg                     txdfifo_ren;
 reg                     txhfifo_ren;
 reg [63:0]              txhfifo_wdata;
 reg                     txhfifo_wen;
 reg [7:0]               txhfifo_wstatus;
+reg [13:0]              txsfifo_wdata;
+reg                     txsfifo_wen;
 reg [7:0]               xgmii_txc;
 reg [63:0]              xgmii_txd;
 // End of automatics
@@ -252,8 +251,8 @@ always @(posedge clk_xgmii_tx or negedge reset_xgmii_tx_n) begin
 
         status_txdfifo_udflow_tog <= 1'b0;
 
-        status_good_frame_tx_tog <= 1'b0;
-        status_good_frame_tx_size <= 14'b0;
+        txsfifo_wen <= 1'b0;
+        txsfifo_wdata <= 14'b0;
 
     end
     else begin
@@ -274,6 +273,9 @@ always @(posedge clk_xgmii_tx or negedge reset_xgmii_tx_n) begin
         xgxs_txc_barrel <= next_xgxs_txc[7:4];
 
         frame_available <= next_frame_available;
+
+        txsfifo_wen <= 1'b0;
+        txsfifo_wdata <= byte_cnt;
 
         //---
         // Barrel shifter. Previous stage always align packet with LANE0.
@@ -304,8 +306,7 @@ always @(posedge clk_xgmii_tx or negedge reset_xgmii_tx_n) begin
         // Frame count and size
 
         if (frame_end) begin
-            status_good_frame_tx_tog <= ~status_good_frame_tx_tog;
-            status_good_frame_tx_size <= byte_cnt;
+            txsfifo_wen <= 1'b1;
         end
 
     end

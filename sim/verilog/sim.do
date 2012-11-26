@@ -38,6 +38,12 @@ vlog -timescale 1ps/1ps +incdir+../../rtl/include ../../rtl/verilog/tx_enqueue.v
 
 vlog -timescale 1ps/1ps +incdir+../../rtl/include ../../rtl/verilog/wishbone_if.v
 
+vlog -timescale 1ps/1ps +incdir+../../rtl/include ../../rtl/verilog/tx_stats_fifo.v
+
+vlog -timescale 1ps/1ps +incdir+../../rtl/include ../../rtl/verilog/rx_stats_fifo.v
+
+vlog -timescale 1ps/1ps +incdir+../../rtl/include ../../rtl/verilog/stats_sm.v
+
 vlog -timescale 1ps/1ps +incdir+../../rtl/include ../../rtl/verilog/stats.v
 
 vlog -timescale 1ps/1ps +incdir+../../rtl/include ../../rtl/verilog/xge_mac.v
@@ -88,7 +94,7 @@ add wave sim:/tb/dut/fault_sm0/*
 
 add wave -divider
 
-add wave sim:/tb/dut/stats0/*
+add wave sim:/tb/dut/stats0/stats_sm0/*
 
 add wave -divider
 
