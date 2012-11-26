@@ -250,6 +250,8 @@ always @(posedge clk_xgmii_rx or negedge reset_xgmii_rx_n) begin
         rxsfifo_wen <= 1'b0;
         rxsfifo_wdata <= 14'b0;
 
+        datamask <= 8'b0;
+
     end
     else begin
 
@@ -319,6 +321,17 @@ always @(posedge clk_xgmii_rx or negedge reset_xgmii_rx_n) begin
         xgxs_rxd_barrel_d1 <= xgxs_rxd_barrel;
         xgxs_rxc_barrel_d1 <= xgxs_rxc_barrel;
 
+        //---
+        // Mask for end-of-frame
+
+        datamask[0] <= addmask[0];
+        datamask[1] <= &addmask[1:0];
+        datamask[2] <= &addmask[2:0];
+        datamask[3] <= &addmask[3:0];
+        datamask[4] <= &addmask[4:0];
+        datamask[5] <= &addmask[5:0];
+        datamask[6] <= &addmask[6:0];
+        datamask[7] <= &addmask[7:0];
 
         //---
         // When final CRC calculation begins we capture info relevant to
@@ -463,32 +476,15 @@ end
 
 
 always @(/*AS*/coding_error or crc_rx or curr_byte_cnt or curr_state
-         or pause_frame or xgxs_rxc_barrel or xgxs_rxc_barrel_d1
-         or xgxs_rxd_barrel or xgxs_rxd_barrel_d1) begin
+         or datamask or pause_frame or xgxs_rxc_barrel
+         or xgxs_rxc_barrel_d1 or xgxs_rxd_barrel
+         or xgxs_rxd_barrel_d1) begin
 
     next_state = curr_state;
 
     rxhfifo_wdata = xgxs_rxd_barrel_d1;
     rxhfifo_wstatus = `RXSTATUS_NONE;
     rxhfifo_wen = 1'b0;
-
-    addmask[0] = !(xgxs_rxd_barrel_d1[`LANE0] == `TERMINATE && xgxs_rxc_barrel_d1[0]);
-    addmask[1] = !(xgxs_rxd_barrel_d1[`LANE1] == `TERMINATE && xgxs_rxc_barrel_d1[1]);
-    addmask[2] = !(xgxs_rxd_barrel_d1[`LANE2] == `TERMINATE && xgxs_rxc_barrel_d1[2]);
-    addmask[3] = !(xgxs_rxd_barrel_d1[`LANE3] == `TERMINATE && xgxs_rxc_barrel_d1[3]);
-    addmask[4] = !(xgxs_rxd_barrel_d1[`LANE4] == `TERMINATE && xgxs_rxc_barrel_d1[4]);
-    addmask[5] = !(xgxs_rxd_barrel_d1[`LANE5] == `TERMINATE && xgxs_rxc_barrel_d1[5]);
-    addmask[6] = !(xgxs_rxd_barrel_d1[`LANE6] == `TERMINATE && xgxs_rxc_barrel_d1[6]);
-    addmask[7] = !(xgxs_rxd_barrel_d1[`LANE7] == `TERMINATE && xgxs_rxc_barrel_d1[7]);
-
-    datamask[0] = addmask[0];
-    datamask[1] = &addmask[1:0];
-    datamask[2] = &addmask[2:0];
-    datamask[3] = &addmask[3:0];
-    datamask[4] = &addmask[4:0];
-    datamask[5] = &addmask[5:0];
-    datamask[6] = &addmask[6:0];
-    datamask[7] = &addmask[7:0];
 
     next_crc_bytes = 4'b0;
     next_crc_rx = crc_rx;
@@ -503,6 +499,15 @@ always @(/*AS*/coding_error or crc_rx or curr_byte_cnt or curr_state
 
     next_coding_error = coding_error;
     next_pause_frame = pause_frame;
+
+    addmask[0] = !(xgxs_rxd_barrel[`LANE0] == `TERMINATE && xgxs_rxc_barrel[0]);
+    addmask[1] = !(xgxs_rxd_barrel[`LANE1] == `TERMINATE && xgxs_rxc_barrel[1]);
+    addmask[2] = !(xgxs_rxd_barrel[`LANE2] == `TERMINATE && xgxs_rxc_barrel[2]);
+    addmask[3] = !(xgxs_rxd_barrel[`LANE3] == `TERMINATE && xgxs_rxc_barrel[3]);
+    addmask[4] = !(xgxs_rxd_barrel[`LANE4] == `TERMINATE && xgxs_rxc_barrel[4]);
+    addmask[5] = !(xgxs_rxd_barrel[`LANE5] == `TERMINATE && xgxs_rxc_barrel[5]);
+    addmask[6] = !(xgxs_rxd_barrel[`LANE6] == `TERMINATE && xgxs_rxc_barrel[6]);
+    addmask[7] = !(xgxs_rxd_barrel[`LANE7] == `TERMINATE && xgxs_rxc_barrel[7]);
 
     case (curr_state)
 
