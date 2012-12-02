@@ -94,6 +94,10 @@ output [63:0]           xgmii_txd;              // From tx_dq0 of tx_dequeue.v
 
 /*AUTOWIRE*/
 // Beginning of automatic wires (for undeclared instantiated-module outputs)
+wire                    clear_stats_rx_octets;  // From wishbone_if0 of wishbone_if.v
+wire                    clear_stats_rx_pkts;    // From wishbone_if0 of wishbone_if.v
+wire                    clear_stats_tx_octets;  // From wishbone_if0 of wishbone_if.v
+wire                    clear_stats_tx_pkts;    // From wishbone_if0 of wishbone_if.v
 wire                    ctrl_tx_enable;         // From wishbone_if0 of wishbone_if.v
 wire                    ctrl_tx_enable_ctx;     // From sync_clk_xgmii_tx0 of sync_clk_xgmii_tx.v
 wire [1:0]              local_fault_msg_det;    // From rx_eq0 of rx_enqueue.v
@@ -378,6 +382,10 @@ stats stats0(/*AUTOINST*/
              .stats_tx_octets           (stats_tx_octets[31:0]),
              .stats_tx_pkts             (stats_tx_pkts[31:0]),
              // Inputs
+             .clear_stats_rx_octets     (clear_stats_rx_octets),
+             .clear_stats_rx_pkts       (clear_stats_rx_pkts),
+             .clear_stats_tx_octets     (clear_stats_tx_octets),
+             .clear_stats_tx_pkts       (clear_stats_tx_pkts),
              .clk_xgmii_rx              (clk_xgmii_rx),
              .clk_xgmii_tx              (clk_xgmii_tx),
              .reset_xgmii_rx_n          (reset_xgmii_rx_n),
@@ -400,6 +408,10 @@ wishbone_if wishbone_if0(/*AUTOINST*/
                          .wb_ack_o              (wb_ack_o),
                          .wb_int_o              (wb_int_o),
                          .ctrl_tx_enable        (ctrl_tx_enable),
+                         .clear_stats_tx_octets (clear_stats_tx_octets),
+                         .clear_stats_tx_pkts   (clear_stats_tx_pkts),
+                         .clear_stats_rx_octets (clear_stats_rx_octets),
+                         .clear_stats_rx_pkts   (clear_stats_rx_pkts),
                          // Inputs
                          .wb_clk_i              (wb_clk_i),
                          .wb_rst_i              (wb_rst_i),

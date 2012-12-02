@@ -44,12 +44,17 @@ module stats(/*AUTOARG*/
   // Inputs
   wb_rst_i, wb_clk_i, txsfifo_wen, txsfifo_wdata, rxsfifo_wen,
   rxsfifo_wdata, reset_xgmii_tx_n, reset_xgmii_rx_n, clk_xgmii_tx,
-  clk_xgmii_rx
+  clk_xgmii_rx, clear_stats_tx_pkts, clear_stats_tx_octets,
+  clear_stats_rx_pkts, clear_stats_rx_octets
   );
 
 
 /*AUTOINPUT*/
 // Beginning of automatic inputs (from unused autoinst inputs)
+input                   clear_stats_rx_octets;  // To stats_sm0 of stats_sm.v
+input                   clear_stats_rx_pkts;    // To stats_sm0 of stats_sm.v
+input                   clear_stats_tx_octets;  // To stats_sm0 of stats_sm.v
+input                   clear_stats_tx_pkts;    // To stats_sm0 of stats_sm.v
 input                   clk_xgmii_rx;           // To rx_stats_fifo0 of rx_stats_fifo.v
 input                   clk_xgmii_tx;           // To tx_stats_fifo0 of tx_stats_fifo.v
 input                   reset_xgmii_rx_n;       // To rx_stats_fifo0 of rx_stats_fifo.v
@@ -114,6 +119,10 @@ stats_sm stats_sm0(/*AUTOINST*/
                    .txsfifo_rdata       (txsfifo_rdata[13:0]),
                    .txsfifo_rempty      (txsfifo_rempty),
                    .rxsfifo_rdata       (rxsfifo_rdata[13:0]),
-                   .rxsfifo_rempty      (rxsfifo_rempty));
+                   .rxsfifo_rempty      (rxsfifo_rempty),
+                   .clear_stats_tx_octets(clear_stats_tx_octets),
+                   .clear_stats_tx_pkts (clear_stats_tx_pkts),
+                   .clear_stats_rx_octets(clear_stats_rx_octets),
+                   .clear_stats_rx_pkts (clear_stats_rx_pkts));
 
 endmodule
