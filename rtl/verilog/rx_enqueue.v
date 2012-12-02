@@ -299,8 +299,17 @@ always @(posedge clk_xgmii_rx or negedge reset_xgmii_rx_n) begin
         end
         else if (xgmii_rxd[`LANE4] == `START && xgmii_rxc[4]) begin
 
-            xgxs_rxd_barrel <= {xgmii_rxd[31:0], xgmii_rxd_d1[63:32]};
-            xgxs_rxc_barrel <= {xgmii_rxc[3:0], xgmii_rxc_d1[7:4]};
+            xgxs_rxd_barrel[63:32] <= xgmii_rxd[31:0];
+            xgxs_rxc_barrel[7:4] <= xgmii_rxc[3:0];
+
+            if (barrel_shift) begin
+                xgxs_rxd_barrel[31:0] <= xgmii_rxd_d1[63:32];
+                xgxs_rxc_barrel[3:0] <= xgmii_rxc_d1[7:4];
+            end
+            else begin
+                xgxs_rxd_barrel[31:0] <= 32'h07070707;
+                xgxs_rxc_barrel[3:0] <= 4'hf;
+            end
 
             barrel_shift <= 1'b1;
 
