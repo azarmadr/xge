@@ -79,6 +79,15 @@ void cpu_if::enable_all_interrupts(void) {
     write(cpu_if::CPUREG_INT_MASK, 0xffffffff);
 };
 
+void cpu_if::get_rmon_stats(rmonStats_t *rmon_stats) {
+
+    rmon_stats->tx_octets_cnt = read(cpu_if::CPUREG_STATSTXOCTETS);
+    rmon_stats->tx_pkt_cnt = read(cpu_if::CPUREG_STATSTXPKTS);
+
+    rmon_stats->rx_octets_cnt = read(cpu_if::CPUREG_STATSRXOCTETS);
+    rmon_stats->rx_pkt_cnt = read(cpu_if::CPUREG_STATSRXPKTS);
+};
+
 uint cpu_if::read(uint addr) {
 
     uint data;
@@ -238,6 +247,10 @@ void cpu_if::monitor() {
 
             if ((data >> cpu_if::INT_FRAGMENT_ERROR) & 0x1) {
                sb->notify_status(sb_id, scoreboard::FRAGMENT_ERROR);
+            }
+
+            if ((data >> cpu_if::INT_LENGHT_ERROR) & 0x1) {
+               sb->notify_status(sb_id, scoreboard::LENGHT_ERROR);
             }
 
             if ((data >> cpu_if::INT_LOCAL_FAULT) & 0x1) {

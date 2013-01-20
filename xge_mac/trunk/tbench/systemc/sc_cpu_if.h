@@ -43,6 +43,15 @@
 #include "sc_scoreboard.h"
 #include "sc_cpu_if.h"
 
+struct rmonStats_t {
+    int tx_pkt_cnt;
+    int rx_pkt_cnt;
+
+    int tx_octets_cnt;
+    int rx_octets_cnt;
+};
+
+
 SC_MODULE(cpu_if) {
 
   public:
@@ -81,6 +90,7 @@ SC_MODULE(cpu_if) {
         INT_PAUSE_FRAME = 6,
         INT_CRC_ERROR = 7,
         INT_FRAGMENT_ERROR = 8,
+        INT_LENGHT_ERROR = 9,
     };
 
     enum regId {
@@ -89,6 +99,12 @@ SC_MODULE(cpu_if) {
         CPUREG_INT_PENDING = 0x8,
         CPUREG_INT_STATUS = 0xc,
         CPUREG_INT_MASK = 0x10,
+
+        CPUREG_STATSTXOCTETS = 0x80,
+        CPUREG_STATSTXPKTS = 0x84,
+
+        CPUREG_STATSRXOCTETS = 0x90,
+        CPUREG_STATSRXPKTS = 0x94,
     };
 
   private:
@@ -121,6 +137,7 @@ SC_MODULE(cpu_if) {
     void set_interrupt(cpu_if::intId intr);
     void set_interrupt_mask(cpu_if::intId intr, bool value);
     void enable_all_interrupts(void);
+    void get_rmon_stats(rmonStats_t *rmon_stats);
 
     uint read(uint addr);
     void write(uint addr, uint data);

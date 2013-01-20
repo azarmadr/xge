@@ -81,6 +81,7 @@ SC_MODULE(xgmii_if) {
     bool allow_idle_errors;
     bool disable_receive;
     bool disable_padding;
+    bool inject_noise;
 
     bool rx_local_fault;
     bool rx_remote_fault;

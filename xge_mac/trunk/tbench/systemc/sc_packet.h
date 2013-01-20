@@ -48,6 +48,7 @@
 #define PKT_FLAG_ERR_CODING   0x0010
 #define PKT_FLAG_LOCAL_FAULT  0x0020
 #define PKT_FLAG_REMOTE_FAULT 0x0040
+#define PKT_FLAG_ERR_LENGHT   0x0080
 
 
 struct packet_t {
@@ -58,7 +59,7 @@ struct packet_t {
 
     sc_uint<48> dest_addr;
     sc_uint<48> src_addr;
-    sc_uint<8> payload [12000];
+    sc_uint<8> payload [18000];
     sc_uint<32> crc;
 
     sc_uint<32> crc_rx;
@@ -68,7 +69,7 @@ struct packet_t {
     sc_uint<32> ifg;
     sc_uint<32> start_lane;
 
-    sc_uint<8> data [10000];
+    sc_uint<8> data [20000];
 };
 
 ostream& operator<<(ostream& os, const packet_t& p);
