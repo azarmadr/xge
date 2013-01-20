@@ -44,10 +44,11 @@ module wishbone_if(/*AUTOARG*/
   clear_stats_tx_pkts, clear_stats_rx_octets, clear_stats_rx_pkts,
   // Inputs
   wb_clk_i, wb_rst_i, wb_adr_i, wb_dat_i, wb_we_i, wb_stb_i, wb_cyc_i,
-  status_crc_error, status_fragment_error, status_txdfifo_ovflow,
-  status_txdfifo_udflow, status_rxdfifo_ovflow, status_rxdfifo_udflow,
-  status_pause_frame_rx, status_local_fault, status_remote_fault,
-  stats_tx_octets, stats_tx_pkts, stats_rx_octets, stats_rx_pkts
+  status_crc_error, status_fragment_error, status_lenght_error,
+  status_txdfifo_ovflow, status_txdfifo_udflow, status_rxdfifo_ovflow,
+  status_rxdfifo_udflow, status_pause_frame_rx, status_local_fault,
+  status_remote_fault, stats_tx_octets, stats_tx_pkts,
+  stats_rx_octets, stats_rx_pkts
   );
 
 
@@ -66,6 +67,7 @@ output        wb_int_o;
 
 input         status_crc_error;
 input         status_fragment_error;
+input         status_lenght_error;
 
 input         status_txdfifo_ovflow;
 
@@ -109,11 +111,11 @@ reg                     next_wb_int_o;
 reg  [0:0]              cpureg_config0;
 reg  [0:0]              next_cpureg_config0;
 
-reg  [8:0]              cpureg_int_pending;
-reg  [8:0]              next_cpureg_int_pending;
+reg  [9:0]              cpureg_int_pending;
+reg  [9:0]              next_cpureg_int_pending;
 
-reg  [8:0]              cpureg_int_mask;
-reg  [8:0]              next_cpureg_int_mask;
+reg  [9:0]              cpureg_int_mask;
+reg  [9:0]              next_cpureg_int_mask;
 
 reg                     cpuack;
 reg                     next_cpuack;
@@ -123,7 +125,7 @@ reg                     status_local_fault_d1;
 
 /*AUTOWIRE*/
 
-wire [8:0]             int_sources;
+wire [9:0]             int_sources;
 
 
 //---
@@ -131,6 +133,7 @@ wire [8:0]             int_sources;
 // expect a pulse signal.
 
 assign int_sources = {
+                      status_lenght_error,
                       status_fragment_error,
                       status_crc_error,
 
@@ -194,17 +197,17 @@ always @(/*AS*/cpureg_config0 or cpureg_int_mask or cpureg_int_pending
           end
 
           `CPUREG_INT_PENDING: begin
-              next_wb_dat_o = {23'b0, cpureg_int_pending};
+              next_wb_dat_o = {22'b0, cpureg_int_pending};
               next_cpureg_int_pending = int_sources;
               next_wb_int_o = 1'b0;
           end
 
           `CPUREG_INT_STATUS: begin
-              next_wb_dat_o = {23'b0, int_sources};
+              next_wb_dat_o = {22'b0, int_sources};
           end
 
           `CPUREG_INT_MASK: begin
-              next_wb_dat_o = {23'b0, cpureg_int_mask};
+              next_wb_dat_o = {22'b0, cpureg_int_mask};
           end
 
           `CPUREG_STATSTXOCTETS: begin
@@ -246,11 +249,11 @@ always @(/*AS*/cpureg_config0 or cpureg_int_mask or cpureg_int_pending
           end
 
           `CPUREG_INT_PENDING: begin
-              next_cpureg_int_pending = wb_dat_i[8:0] | cpureg_int_pending | int_sources;
+              next_cpureg_int_pending = wb_dat_i[9:0] | cpureg_int_pending | int_sources;
           end
 
           `CPUREG_INT_MASK: begin
-              next_cpureg_int_mask = wb_dat_i[8:0];
+              next_cpureg_int_mask = wb_dat_i[9:0];
           end
 
           default: begin
@@ -267,8 +270,8 @@ always @(posedge wb_clk_i or posedge wb_rst_i) begin
     if (wb_rst_i == 1'b1) begin
 
         cpureg_config0 <= 1'h1;
-        cpureg_int_pending <= 9'b0;
-        cpureg_int_mask <= 9'b0;
+        cpureg_int_pending <= 10'b0;
+        cpureg_int_mask <= 10'b0;
 
         wb_dat_o <= 32'b0;
         wb_int_o <= 1'b0;

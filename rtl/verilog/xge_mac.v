@@ -129,6 +129,8 @@ wire                    status_crc_error;       // From sync_clk_wb0 of sync_clk
 wire                    status_crc_error_tog;   // From rx_eq0 of rx_enqueue.v
 wire                    status_fragment_error;  // From sync_clk_wb0 of sync_clk_wb.v
 wire                    status_fragment_error_tog;// From rx_eq0 of rx_enqueue.v
+wire                    status_lenght_error;    // From sync_clk_wb0 of sync_clk_wb.v
+wire                    status_lenght_error_tog;// From rx_eq0 of rx_enqueue.v
 wire                    status_local_fault;     // From sync_clk_wb0 of sync_clk_wb.v
 wire                    status_local_fault_crx; // From fault_sm0 of fault_sm.v
 wire                    status_local_fault_ctx; // From sync_clk_xgmii_tx0 of sync_clk_xgmii_tx.v
@@ -182,6 +184,7 @@ rx_enqueue rx_eq0(/*AUTOINST*/
                   .remote_fault_msg_det (remote_fault_msg_det[1:0]),
                   .status_crc_error_tog (status_crc_error_tog),
                   .status_fragment_error_tog(status_fragment_error_tog),
+                  .status_lenght_error_tog(status_lenght_error_tog),
                   .status_rxdfifo_ovflow_tog(status_rxdfifo_ovflow_tog),
                   .status_pause_frame_rx_tog(status_pause_frame_rx_tog),
                   .rxsfifo_wen          (rxsfifo_wen),
@@ -343,6 +346,7 @@ sync_clk_wb sync_clk_wb0(/*AUTOINST*/
                          // Outputs
                          .status_crc_error      (status_crc_error),
                          .status_fragment_error (status_fragment_error),
+                         .status_lenght_error   (status_lenght_error),
                          .status_txdfifo_ovflow (status_txdfifo_ovflow),
                          .status_txdfifo_udflow (status_txdfifo_udflow),
                          .status_rxdfifo_ovflow (status_rxdfifo_ovflow),
@@ -355,6 +359,7 @@ sync_clk_wb sync_clk_wb0(/*AUTOINST*/
                          .wb_rst_i              (wb_rst_i),
                          .status_crc_error_tog  (status_crc_error_tog),
                          .status_fragment_error_tog(status_fragment_error_tog),
+                         .status_lenght_error_tog(status_lenght_error_tog),
                          .status_txdfifo_ovflow_tog(status_txdfifo_ovflow_tog),
                          .status_txdfifo_udflow_tog(status_txdfifo_udflow_tog),
                          .status_rxdfifo_ovflow_tog(status_rxdfifo_ovflow_tog),
@@ -422,6 +427,7 @@ wishbone_if wishbone_if0(/*AUTOINST*/
                          .wb_cyc_i              (wb_cyc_i),
                          .status_crc_error      (status_crc_error),
                          .status_fragment_error (status_fragment_error),
+                         .status_lenght_error   (status_lenght_error),
                          .status_txdfifo_ovflow (status_txdfifo_ovflow),
                          .status_txdfifo_udflow (status_txdfifo_udflow),
                          .status_rxdfifo_ovflow (status_rxdfifo_ovflow),
