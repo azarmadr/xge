@@ -40,10 +40,10 @@
 
 // CPU Registers
 
-`define CPUREG_CONFIG0       8'h00
-`define CPUREG_INT_PENDING   8'h08
-`define CPUREG_INT_STATUS    8'h0c
-`define CPUREG_INT_MASK      8'h10
+`define CPUREG_CONFIG0        8'h00
+`define CPUREG_INT_PENDING    8'h08
+`define CPUREG_INT_STATUS     8'h0c
+`define CPUREG_INT_MASK       8'h10
 
 `define CPUREG_STATSTXOCTETS 8'h80
 `define CPUREG_STATSTXPKTS   8'h84
@@ -124,3 +124,8 @@
 // Changed system packet interface to big endian (12/12/2009)
 // Comment out to use legacy mode
 `define BIGENDIAN
+
+// MAX FRAME SIZE
+// Frames received with longer lenght will be marked as "errored" and the pkt_rx_err
+// signal will be assert. Lenght includes CRC.
+`define MAX_FRAME_SIZE 14'd16000

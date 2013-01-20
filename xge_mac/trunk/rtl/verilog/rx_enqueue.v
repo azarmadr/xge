@@ -43,8 +43,9 @@ module rx_enqueue(/*AUTOARG*/
   rxdfifo_wdata, rxdfifo_wstatus, rxdfifo_wen, rxhfifo_ren,
   rxhfifo_wdata, rxhfifo_wstatus, rxhfifo_wen, local_fault_msg_det,
   remote_fault_msg_det, status_crc_error_tog,
-  status_fragment_error_tog, status_rxdfifo_ovflow_tog,
-  status_pause_frame_rx_tog, rxsfifo_wen, rxsfifo_wdata,
+  status_fragment_error_tog, status_lenght_error_tog,
+  status_rxdfifo_ovflow_tog, status_pause_frame_rx_tog, rxsfifo_wen,
+  rxsfifo_wdata,
   // Inputs
   clk_xgmii_rx, reset_xgmii_rx_n, xgmii_rxd, xgmii_rxc, rxdfifo_wfull,
   rxhfifo_rdata, rxhfifo_rstatus, rxhfifo_rempty,
@@ -83,6 +84,7 @@ output [1:0]  remote_fault_msg_det;
 
 output        status_crc_error_tog;
 output        status_fragment_error_tog;
+output        status_lenght_error_tog;
 output        status_rxdfifo_ovflow_tog;
 
 output        status_pause_frame_rx_tog;
@@ -107,6 +109,7 @@ reg [13:0]              rxsfifo_wdata;
 reg                     rxsfifo_wen;
 reg                     status_crc_error_tog;
 reg                     status_fragment_error_tog;
+reg                     status_lenght_error_tog;
 reg                     status_pause_frame_rx_tog;
 reg                     status_rxdfifo_ovflow_tog;
 // End of automatics
@@ -145,6 +148,7 @@ reg [2:0]     next_state;
 
 reg [13:0]    curr_byte_cnt;
 reg [13:0]    next_byte_cnt;
+reg [13:0]    frame_lenght;
 
 reg           frame_end_flag;
 reg           next_frame_end_flag;
@@ -154,6 +158,8 @@ reg [2:0]     next_frame_end_bytes;
 
 reg           fragment_error;
 reg           rxd_ovflow_error;
+
+reg           lenght_error;
 
 reg           coding_error;
 reg           next_coding_error;
@@ -243,6 +249,7 @@ always @(posedge clk_xgmii_rx or negedge reset_xgmii_rx_n) begin
 
         status_crc_error_tog <= 1'b0;
         status_fragment_error_tog <= 1'b0;
+        status_lenght_error_tog <= 1'b0;
         status_rxdfifo_ovflow_tog <= 1'b0;
 
         status_pause_frame_rx_tog <= 1'b0;
@@ -252,11 +259,15 @@ always @(posedge clk_xgmii_rx or negedge reset_xgmii_rx_n) begin
 
         datamask <= 8'b0;
 
+        lenght_error <= 1'b0;
+
     end
     else begin
 
         rxsfifo_wen <= 1'b0;
-        rxsfifo_wdata <= curr_byte_cnt + {11'b0, frame_end_bytes};
+        rxsfifo_wdata <= frame_lenght;
+
+        lenght_error <= 1'b0;
 
         //---
         // Link status RC layer
@@ -434,6 +445,14 @@ always @(posedge clk_xgmii_rx or negedge reset_xgmii_rx_n) begin
             rxsfifo_wen <= 1'b1;
         end
 
+        //---
+        // Check frame lenght
+
+        if (frame_end_flag && frame_lenght > `MAX_FRAME_SIZE) begin
+            lenght_error <= 1'b1;
+            status_lenght_error_tog <= ~status_lenght_error_tog;
+        end
+
     end
 
 end
@@ -485,8 +504,8 @@ end
 
 
 always @(/*AS*/coding_error or crc_rx or curr_byte_cnt or curr_state
-         or datamask or pause_frame or xgxs_rxc_barrel
-         or xgxs_rxc_barrel_d1 or xgxs_rxd_barrel
+         or datamask or frame_end_bytes or pause_frame
+         or xgxs_rxc_barrel or xgxs_rxc_barrel_d1 or xgxs_rxd_barrel
          or xgxs_rxd_barrel_d1) begin
 
     next_state = curr_state;
@@ -505,6 +524,8 @@ always @(/*AS*/coding_error or crc_rx or curr_byte_cnt or curr_state
     next_frame_end_bytes = 3'b0;
 
     fragment_error = 1'b0;
+
+    frame_lenght = curr_byte_cnt + {11'b0, frame_end_bytes};
 
     next_coding_error = coding_error;
     next_pause_frame = pause_frame;
@@ -574,7 +595,7 @@ always @(/*AS*/coding_error or crc_rx or curr_byte_cnt or curr_state
                   end
 
               end
-              else if (curr_byte_cnt > 14'd9900) begin
+              else if (curr_byte_cnt > 14'd16100) begin
 
                   // Frame too long, TERMMINATE must have been corrupted.
                   // Abort transfer, write a fake EOP, report as fragment.
@@ -797,9 +818,9 @@ always @(posedge clk_xgmii_rx or negedge reset_xgmii_rx_n) begin
 
 end
 
-always @(/*AS*/crc_done or crc_good or drop_data or pkt_pending
-         or rxdfifo_wfull or rxhfifo_ralmost_empty_d1 or rxhfifo_rdata
-         or rxhfifo_ren_d1 or rxhfifo_rstatus) begin
+always @(/*AS*/crc_done or crc_good or drop_data or lenght_error
+         or pkt_pending or rxdfifo_wfull or rxhfifo_ralmost_empty_d1
+         or rxhfifo_rdata or rxhfifo_ren_d1 or rxhfifo_rstatus) begin
 
     rxd_ovflow_error = 1'b0;
 
@@ -841,7 +862,7 @@ always @(/*AS*/crc_done or crc_good or drop_data or pkt_pending
 
 
 
-    if (crc_done && !crc_good) begin
+    if ((crc_done && !crc_good) || lenght_error) begin
 
         // Flag packet with error when CRC error is detected
 
