@@ -66,7 +66,9 @@ void testcases::run_tests(void) {
     //---
     // Testcases
 
-    test_packet_size(50, 90, 50);
+    test_noise();
+
+    test_packet_size(50, 90, 500);
     test_packet_size(9000, 9020, 20);
     test_packet_size(9599, 9601, 10);
 
@@ -79,6 +81,7 @@ void testcases::run_tests(void) {
     test_rxdfifo_ovflow();
 
     test_rx_fragments(55, 90, 300, 2);
+    test_rx_lenght(20, 3);
     test_rx_coding_err(400, 4);
 
     test_rx_local_fault(55, 90, 600, 15);
@@ -162,6 +165,7 @@ void testcases::test_packet_size(int min, int max, int cnt) {
 
     sbStats_t* pif_stats;
     sbStats_t* xgm_stats;
+    rmonStats_t rmon_stats;
 
     cout << "-----------------------" << endl;
     cout << "Packet size" << endl;
@@ -205,6 +209,35 @@ void testcases::test_packet_size(int min, int max, int cnt) {
     if (xgm_stats->rx_pkt_cnt != cnt) {
         cout << "ERROR: Not all packets received by XGM." << endl;
         cout << xgm_stats->rx_pkt_cnt << " " << cnt << endl;
+        sc_stop();
+    }
+
+    //---
+    // Check stats
+
+    tb->cpu_if0.get_rmon_stats(&rmon_stats);
+
+    if (rmon_stats.tx_pkt_cnt != cnt) {
+        cout << "ERROR: Not all TX packets counted by MAC." << endl;
+        cout << rmon_stats.tx_pkt_cnt << " " << cnt << endl;
+        sc_stop();
+    }
+
+    if (rmon_stats.rx_pkt_cnt != cnt) {
+        cout << "ERROR: Not all RX packets counted by MAC." << endl;
+        cout << rmon_stats.rx_pkt_cnt << " " << cnt << endl;
+        sc_stop();
+    }
+
+    if (rmon_stats.tx_octets_cnt != xgm_stats->rx_octets_cnt) {
+        cout << "ERROR: Not all TX octets counted by MAC." << endl;
+        cout << rmon_stats.tx_octets_cnt << " " << xgm_stats->rx_octets_cnt << endl;
+        sc_stop();
+    }
+
+    if (rmon_stats.rx_octets_cnt != pif_stats->rx_octets_cnt) {
+        cout << "ERROR: Not all RX octets counted by MAC." << endl;
+        cout << rmon_stats.rx_octets_cnt << " " << pif_stats->rx_octets_cnt << endl;
         sc_stop();
     }
 }
@@ -483,6 +516,65 @@ void testcases::test_rx_fragments(int min, int max, int cnt, int interval) {
     tb->sb.disable_signal_check = false;
 }
 
+void testcases::test_rx_lenght(int cnt, int interval) {
+
+    sbStats_t* pif_stats;
+    sbCpuStats_t* cpu_stats;
+
+    cout << "-----------------------" << endl;
+    cout << "Lenght errors" << endl;
+    cout << "-----------------------" << endl;
+
+    //---
+    // Setup parameters
+
+    tb->sb.clear_stats();
+
+    tb->xgm_gen0.set_pkt_size(16000-4, 16000-4);
+    tb->xgm_gen0.set_lenght_errors(interval, 16000-3);
+    tb->sb.disable_signal_check = true;
+
+    //---
+    // Enable traffic
+
+    tb->xgm_gen0.set_tx_bucket(cnt);
+
+    //---
+    // Wait for test to complete
+
+    while (tb->xgm_gen0.get_tx_bucket() != 0) {
+        wait(10, SC_NS);
+    }
+
+    //---
+    // Check traffic
+
+    wait(60000, SC_NS);
+
+    pif_stats = tb->sb.get_pif_stats();
+    cpu_stats = tb->sb.get_cpu_stats();
+
+    if (pif_stats->rx_pkt_cnt != cnt) {
+        cout << "ERROR: Not all packets received by PIF." << endl;
+        cout << pif_stats->rx_pkt_cnt << " " << cnt << endl;
+        sc_stop();
+    }
+
+    if (cpu_stats->lenght_error_cnt + cpu_stats->crc_error_cnt
+        != pif_stats->lenght_error_cnt) {
+        cout << "ERROR: Not all lenght errors reported to cpu" << endl;
+        cout << cpu_stats->lenght_error_cnt << endl;
+        cout << pif_stats->lenght_error_cnt << endl;
+        sc_stop();
+    }
+
+    //---
+    // Return parameters to default state
+
+    tb->sb.disable_signal_check = false;
+    tb->xgm_gen0.set_lenght_errors(0, 16000-3);
+}
+
 void testcases::test_rx_coding_err(int cnt, int interval) {
 
     sbStats_t* pif_stats;
@@ -745,4 +837,36 @@ void testcases::test_interrupt_mask() {
 
     tb->sb.disable_signal_check = false;
     tb->cpu_if0.set_interrupt_mask(cpu_if::INT_CRC_ERROR, 1);
+}
+
+void testcases::test_noise() {
+
+    cout << "-----------------------" << endl;
+    cout << "XGMII Noise" << endl;
+    cout << "-----------------------" << endl;
+
+    //---
+    // Setup parameters
+
+    tb->sb.disable_signal_check = true;
+    tb->pkt_if0.flush_rx = true;
+
+    //---
+    // Inject noise
+
+    tb->xgm_if0.inject_noise = true;
+
+    while (tb->xgm_if0.inject_noise) {
+        wait(100, SC_NS);
+    }
+
+    wait(30000, SC_NS);
+
+    //---
+    // Return parameters to default state
+
+    tb->sb.disable_signal_check = true;
+    tb->pkt_if0.flush_rx = false;
+
+    wait(30000, SC_NS);
 }

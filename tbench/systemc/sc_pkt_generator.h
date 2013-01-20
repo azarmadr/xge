@@ -58,6 +58,8 @@ SC_MODULE(pkt_generator) {
 
     int crc_interval;
     int fragment_interval;
+    int lenght_err_interval;
+    int lenght_err_size;
     int coding_interval;
     int local_fault_interval;
     int remote_fault_interval;
@@ -79,6 +81,7 @@ SC_MODULE(pkt_generator) {
 
     void set_crc_errors(int interval);
     void set_fragment_errors(int interval);
+    void set_lenght_errors(int interval, int size);
     void set_coding_errors(int interval);
     void set_local_fault(int interval);
     void set_remote_fault(int interval);

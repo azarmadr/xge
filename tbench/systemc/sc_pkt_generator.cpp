@@ -48,6 +48,8 @@
 void pkt_generator::init(void) {
     crc_interval = 0;
     fragment_interval = 0;
+    lenght_err_interval = 0;
+    lenght_err_size = 10000;
     coding_interval = 0;
     local_fault_interval = 0;
     remote_fault_interval = 0;
@@ -63,6 +65,7 @@ void pkt_generator::gen_packet() {
     int len = 0;
     int crc_int = 0;
     int fragment_int = 0;
+    int lenght_err_int = 0;
     int coding_int = 0;
     int local_fault_int = 0;
     int remote_fault_int = 0;
@@ -71,7 +74,7 @@ void pkt_generator::gen_packet() {
     char running_cnt = 0;
 
     while (true) {
-        
+
         wait(5, SC_NS);
 
         if (tx_bucket != 0 && tx_fifo->num_available() == 0) {
@@ -86,7 +89,7 @@ void pkt_generator::gen_packet() {
 
             //---
             // Update constraints
-            
+
             if (len < min_pkt_size) {
                 len = min_pkt_size;
             }
@@ -137,6 +140,20 @@ void pkt_generator::gen_packet() {
                 fragment_int = 0;
             }
 
+            if (lenght_err_interval != 0) {
+                if (lenght_err_int >= lenght_err_interval) {
+                    pkt->err_flags |= PKT_FLAG_ERR_LENGHT;
+                    lenght_err_int = 0;
+                    pkt->length = lenght_err_size;
+                }
+                else {
+                    lenght_err_int++;
+                }
+            }
+            else {
+                lenght_err_int = 0;
+            }
+
             if (coding_interval != 0) {
                 if (coding_int >= coding_interval) {
                     pkt->err_flags |= PKT_FLAG_ERR_CODING;
@@ -158,7 +175,7 @@ void pkt_generator::gen_packet() {
 
                     pkt->err_flags |= PKT_FLAG_LOCAL_FAULT;
                     local_fault_int = 0;
- 
+
                     fault_spacing++;
                     if (fault_spacing > (132 - 4)) {
                         fault_spacing = 120;
@@ -178,7 +195,7 @@ void pkt_generator::gen_packet() {
 
                     pkt->err_flags |= PKT_FLAG_REMOTE_FAULT;
                     remote_fault_int = 0;
- 
+
                     fault_spacing++;
                     if (fault_spacing > (132 - 4)) {
                         fault_spacing = 120;
@@ -202,7 +219,7 @@ void pkt_generator::gen_packet() {
                     pkt->dest_addr = 0x0180c2;
                     pkt->dest_addr = (pkt->dest_addr << 24) | 0x000001;
                     pause_int = 0;
- 
+
                 }
                 else {
                     pause_int++;
@@ -216,7 +233,7 @@ void pkt_generator::gen_packet() {
 
             tx_bucket--;
             len++;
- 
+
         }
         else {
             wait(50, SC_NS);
@@ -246,6 +263,11 @@ void pkt_generator::set_crc_errors(int interval) {
 
 void pkt_generator::set_fragment_errors(int interval) {
     fragment_interval = interval;
+}
+
+void pkt_generator::set_lenght_errors(int interval, int size) {
+    lenght_err_interval = interval;
+    lenght_err_size = size;
 }
 
 void pkt_generator::set_coding_errors(int interval) {

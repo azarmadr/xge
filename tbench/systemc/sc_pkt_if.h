@@ -91,6 +91,7 @@ SC_MODULE(pkt_if) {
     // Variables
 
     bool disable_rx;
+    bool flush_rx;
     bool allow_rx_sop_err;
 
     //---

@@ -47,8 +47,12 @@ struct sbStats_t {
     int tx_pkt_cnt;
     int rx_pkt_cnt;
 
+    int tx_octets_cnt;
+    int rx_octets_cnt;
+
     int crc_error_cnt;
     int fragment_error_cnt;
+    int lenght_error_cnt;
     int coding_error_cnt;
     int flags_error_cnt;
 
@@ -70,6 +74,7 @@ struct sbStats_t {
 struct sbCpuStats_t {
     int crc_error_cnt;
     int fragment_error_cnt;
+    int lenght_error_cnt;
 
     int rxd_fifo_ovflow_cnt;
     int rxd_fifo_udflow_cnt;
@@ -98,6 +103,7 @@ SC_MODULE(scoreboard) {
     enum sbStatusId {
         CRC_ERROR,
         FRAGMENT_ERROR,
+        LENGHT_ERROR,
         LOCAL_FAULT,
         REMOTE_FAULT,
         RXD_FIFO_OVFLOW,
@@ -145,7 +151,7 @@ SC_MODULE(scoreboard) {
 
     void clear_stats(void);
 
-    SC_CTOR(scoreboard): 
+    SC_CTOR(scoreboard):
         pif_fifo (2000),
         xgm_fifo (2000) {
 
