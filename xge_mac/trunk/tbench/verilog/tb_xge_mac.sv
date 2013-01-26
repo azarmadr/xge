@@ -485,7 +485,7 @@ task CmdTxPacket;
 
             for (i = 0; i < tx_length; i = i + 1) begin
 
-                count = $fscanf(file, "%2X", data);
+                count = $fscanf(file, "%2x", data);
                 if (count) begin
                     tx_buffer[i] = data;
                 end
@@ -516,18 +516,19 @@ task ProcessCmdFile;
         while (!$feof(file_cmd)) begin
 
             count = $fscanf(file_cmd, "%s", str);
-            if (count != 1) continue;
+            if (count == 1) begin
 
-            $display("CMD %s", str);
+                $display("CMD %s", str);
 
-            case (str)
+                case (str)
 
-              "SEND_PKT":
-                begin
-                    CmdTxPacket(file_cmd);
-                end
+                  "SEND_PKT":
+                    begin
+                        CmdTxPacket(file_cmd);
+                    end
 
-            endcase
+                endcase
+            end
 
         end
 
