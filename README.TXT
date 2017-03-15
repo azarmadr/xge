@@ -89,6 +89,14 @@ compiles verilog into C++ or SystemC code. You can download Verilator from
 www.veripool.org. You also need to install SystemPerl and Verilog-Perl for waveform
 traces.
 
+Add the following exports to your .bashrc file, adjust based on your version:
+
+  export SYSTEMC=/opt/systemc-2.3.1a
+  export SYSTEMC_INCLUDE=/opt/systemc-2.3.1a/include   # with systemc.h
+  export SYSTEMC_LIBDIR=/opt/systemc-2.3.1a/lib    # with libsystemc.a
+  export VERILATOR_ROOT=/opt/verilator-3.900
+  export SYSTEMPERL=/opt/SystemPerl-1.344
+  export LD_LIBRARY_PATH=/opt/systemc-2.3.1a/lib-linux64
 
 Once all the required tools are installed:
 
